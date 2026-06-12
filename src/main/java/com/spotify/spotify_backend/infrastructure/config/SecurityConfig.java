@@ -2,10 +2,10 @@ package com.spotify.spotify_backend.infrastructure.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
 import com.spotify.spotify_backend.presentation.middleware.JwtAuthenticationFilter;
 
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**",
                                     "/api/songs/**",
                                     "/api/albums/**",
-                                    "/api/artists/**")
+                                    "/api/artists/**",
+                                    "/api/playlists/**")
                                     .permitAll()
                                     .anyRequest()
                                     .authenticated()
