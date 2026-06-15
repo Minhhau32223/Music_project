@@ -26,4 +26,4 @@ public class GetAllPlaylistsUseCaseImpl implements GetAllPlaylistsUseCase {
                 )
                 .toList();
     }
-}
+}   
