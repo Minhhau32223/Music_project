@@ -29,7 +29,8 @@ public class SecurityConfig {
                                     "/api/songs/**",
                                     "/api/albums/**",
                                     "/api/artists/**",
-                                    "/api/playlists/**")
+                                    "/api/playlists/**",
+                                    "/api/stream/**")
                                     .permitAll()
                                     .anyRequest()
                                     .authenticated()

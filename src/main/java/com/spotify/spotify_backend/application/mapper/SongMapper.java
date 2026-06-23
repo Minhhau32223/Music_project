@@ -12,8 +12,8 @@ public class SongMapper {
         Song song = new Song();
 
         song.setName(request.name());
-        song.setFilePath(request.file());
-        song.setImagePath(request.image());
+        song.setFilePath(request.file().toString());
+        song.setImagePath(request.image().toString());
         song.setLyrics(request.lyrics());
         song.setDuration(request.duration());
 

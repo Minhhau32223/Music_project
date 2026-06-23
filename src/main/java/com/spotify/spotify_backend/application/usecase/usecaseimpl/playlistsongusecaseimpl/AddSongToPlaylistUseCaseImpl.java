@@ -1,11 +1,10 @@
-package com.spotify.spotify_backend.application.usecase.usecaseimpl.playlistusecaseimpl;
-
+package com.spotify.spotify_backend.application.usecase.usecaseimpl.playlistsongusecaseimpl;
 import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 
 import com.spotify.spotify_backend.application.dto.Request.AddSongToPlaylistRequest;
-import com.spotify.spotify_backend.application.usecase.playlistusecase.AddSongToPlaylistUseCase;
+import com.spotify.spotify_backend.application.usecase.playplistsongusecase.AddSongToPlaylistUseCase;
 import com.spotify.spotify_backend.domain.model.PlaylistSong;
 import com.spotify.spotify_backend.domain.repository.PlaylistRepository;
 import com.spotify.spotify_backend.domain.repository.PlaylistSongRepository;
