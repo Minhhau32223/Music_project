@@ -2,9 +2,18 @@ package com.spotify.spotify_backend.presentation.controller;
 
 import java.util.List;
 
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.spotify.spotify_backend.application.dto.Request.CreateAlbumRequest;
+import com.spotify.spotify_backend.application.dto.Request.UpdateAlbumRequest;
 import com.spotify.spotify_backend.application.dto.Response.AlbumResponse;
 import com.spotify.spotify_backend.application.dto.Response.SongResponse;
 import com.spotify.spotify_backend.application.usecase.albumusecase.CreateAlbumUseCase;
@@ -12,6 +21,7 @@ import com.spotify.spotify_backend.application.usecase.albumusecase.DeleteAlbumU
 import com.spotify.spotify_backend.application.usecase.albumusecase.GetAlbumSongsUseCase;
 import com.spotify.spotify_backend.application.usecase.albumusecase.GetAlbumUseCase;
 import com.spotify.spotify_backend.application.usecase.albumusecase.GetAllAlbumsUseCase;
+import com.spotify.spotify_backend.application.usecase.albumusecase.UpdateAlbumUseCase;
 
 import lombok.RequiredArgsConstructor;
 
@@ -25,34 +35,43 @@ public class AlbumController {
     private final GetAllAlbumsUseCase getAllAlbumsUseCase;
     private final DeleteAlbumUseCase deleteAlbumUseCase;
     private final GetAlbumSongsUseCase getAlbumSongsUseCase;
+    private final UpdateAlbumUseCase updateAlbumUseCase;
 
-    @PostMapping("/create")
+    @PostMapping("/create/")
     public AlbumResponse createAlbum(
             @RequestBody CreateAlbumRequest request
     ) {
         return createAlbumUseCase.execute(request);
     }
 
-    @GetMapping
+    @PutMapping("/{id}/")
+    public AlbumResponse updateAlbum(
+            @PathVariable Long id,
+            @ModelAttribute UpdateAlbumRequest request
+    ) {
+        return updateAlbumUseCase.execute(id, request);
+    }
+
+    @GetMapping("/")
     public List<AlbumResponse> getAllAlbums() {
         return getAllAlbumsUseCase.execute();
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id}/")
     public AlbumResponse getAlbum(
             @PathVariable Long id
     ) {
         return getAlbumUseCase.execute(id);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id}/")
     public void deleteAlbum(
             @PathVariable Long id
     ) {
         deleteAlbumUseCase.execute(id);
     }
 
-    @GetMapping("/{id}/songs")
+    @GetMapping("/{id}/songs/")
     public List<SongResponse> getAlbumSongs(
             @PathVariable Long id
     ) {

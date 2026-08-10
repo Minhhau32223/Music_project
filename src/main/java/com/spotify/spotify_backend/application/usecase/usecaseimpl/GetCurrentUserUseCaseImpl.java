@@ -5,6 +5,7 @@ import com.spotify.spotify_backend.application.dto.Response.UserProfileResponse;
 import com.spotify.spotify_backend.application.usecase.GetCurrentUserUseCase;
 import com.spotify.spotify_backend.domain.model.User;
 import com.spotify.spotify_backend.domain.repository.UserRepository;
+import com.spotify.spotify_backend.domain.exception.NotFoundException;
 
 import lombok.RequiredArgsConstructor;
 @Service
@@ -14,8 +15,8 @@ public class GetCurrentUserUseCaseImpl implements GetCurrentUserUseCase {
     @Override
     public UserProfileResponse execute(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        return new UserProfileResponse(user.getId(), user.getUsername(), user.getEmail(), user.getActive(), user.getAdmin());
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        return new UserProfileResponse(user.getId(), user.getUsername(), user.getEmail(), user.getActive(), user.getRole(), user.getAvatarUrl());
     }
     
 }

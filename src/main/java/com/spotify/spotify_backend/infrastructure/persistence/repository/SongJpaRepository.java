@@ -9,4 +9,5 @@ import com.spotify.spotify_backend.infrastructure.persistence.entity.SongEntity;
 public interface SongJpaRepository extends JpaRepository<SongEntity, Long> {
     Optional<SongEntity> findById(Long id);
     List<SongEntity> findByAlbumId(Long albumId);
+    List<SongEntity> findByNameContainingIgnoreCase(String keyword);
 }

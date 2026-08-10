@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 
 import com.spotify.spotify_backend.application.usecase.artistfollowusecase.FollowArtistUseCase;
+import com.spotify.spotify_backend.domain.exception.ConflictException;
+import com.spotify.spotify_backend.domain.exception.NotFoundException;
 import com.spotify.spotify_backend.domain.model.ArtistFollow;
 import com.spotify.spotify_backend.domain.repository.ArtistFollowRepository;
 import com.spotify.spotify_backend.domain.repository.ArtistRepository;
@@ -32,7 +34,7 @@ public class FollowArtistUseCaseImpl
                 .findById(artistId)
                 .orElseThrow(
                         () ->
-                                new RuntimeException(
+                                new NotFoundException(
                                         "Artist not found"
                                 )
                 );
@@ -47,7 +49,7 @@ public class FollowArtistUseCaseImpl
 
         if (exists) {
 
-            throw new RuntimeException(
+            throw new ConflictException(
                     "Already followed"
             );
         }

@@ -10,4 +10,5 @@ public interface ArtistRepository {
     Optional<Artist> findById(Long id);
     List<Artist> findAll();
     void deleteById(Long id);
+    List<Artist> findByNameContaining(String keyword);
 }

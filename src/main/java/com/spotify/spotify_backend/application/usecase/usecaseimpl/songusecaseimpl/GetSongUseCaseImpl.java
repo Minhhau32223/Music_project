@@ -11,6 +11,7 @@ import com.spotify.spotify_backend.domain.model.Song;
 import com.spotify.spotify_backend.domain.repository.AlbumRepository;
 import com.spotify.spotify_backend.domain.repository.ArtistRepository;
 import com.spotify.spotify_backend.domain.repository.SongRepository;
+import com.spotify.spotify_backend.domain.exception.NotFoundException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,9 +27,9 @@ public class GetSongUseCaseImpl implements GetSongUseCase {
         Song song = songRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Song not found"));
         Album album =albumRepository.findById(song.getAlbumId())
-                                      .orElseThrow(() -> new RuntimeException("Album not found"));;
+                                      .orElseThrow(() -> new NotFoundException("Album not found"));;
         Artist artist = artistRepository.findById(song.getArtistId())
-                                        .orElseThrow(() -> new RuntimeException("Artist not found"));
+                                        .orElseThrow(() -> new NotFoundException("Artist not found"));
         return SongMapper.toResponse(song, album.getName(),  artist.getName());
     }
 }

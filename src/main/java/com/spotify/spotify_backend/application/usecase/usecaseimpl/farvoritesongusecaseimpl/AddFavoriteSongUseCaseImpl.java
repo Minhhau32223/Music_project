@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 
 import com.spotify.spotify_backend.application.usecase.farvoritesongusecase.AddFavoriteSongUseCase;
+import com.spotify.spotify_backend.domain.exception.ConflictException;
+import com.spotify.spotify_backend.domain.exception.NotFoundException;
 import com.spotify.spotify_backend.domain.model.FavoriteSong;
 import com.spotify.spotify_backend.domain.repository.FavoriteSongRepository;
 import com.spotify.spotify_backend.domain.repository.SongRepository;
@@ -29,7 +31,7 @@ public class AddFavoriteSongUseCaseImpl
 
         songRepository.findById(songId)
                 .orElseThrow(
-                        () -> new RuntimeException(
+                        () -> new NotFoundException(
                                 "Song not found"
                         )
                 );
@@ -44,7 +46,7 @@ public class AddFavoriteSongUseCaseImpl
 
         if (exists) {
 
-            throw new RuntimeException(
+            throw new ConflictException(
                     "Song already favorited"
             );
         }

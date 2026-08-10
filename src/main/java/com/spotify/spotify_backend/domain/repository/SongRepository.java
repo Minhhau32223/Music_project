@@ -10,4 +10,5 @@ public interface SongRepository {
     List<Song> findAll();
     List<Song> findByAlbumId(Long albumId);
     void deleteById(Long id);
+    List<Song> findByNameContaining(String keyword);
 }

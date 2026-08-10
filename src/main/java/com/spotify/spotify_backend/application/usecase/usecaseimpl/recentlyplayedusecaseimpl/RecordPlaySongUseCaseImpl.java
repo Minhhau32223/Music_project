@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 
 import com.spotify.spotify_backend.application.usecase.recentlyplayedusecase.RecordPlaySongUseCase;
+import com.spotify.spotify_backend.domain.exception.NotFoundException;
 import com.spotify.spotify_backend.domain.model.RecentlyPlayed;
 import com.spotify.spotify_backend.domain.repository.RecentlyPlayedRepository;
 import com.spotify.spotify_backend.domain.repository.SongRepository;
@@ -33,7 +34,7 @@ public class RecordPlaySongUseCaseImpl
         userRepository.findById(
                 userId
         ).orElseThrow(
-                () -> new RuntimeException(
+                () -> new NotFoundException(
                         "User not found"
                 )
         );
@@ -41,7 +42,7 @@ public class RecordPlaySongUseCaseImpl
         songRepository.findById(
                 songId
         ).orElseThrow(
-                () -> new RuntimeException(
+                () -> new NotFoundException(
                         "Song not found"
                 )
         );

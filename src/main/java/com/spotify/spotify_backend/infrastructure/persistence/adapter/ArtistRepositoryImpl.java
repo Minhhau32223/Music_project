@@ -51,6 +51,17 @@ public class ArtistRepositoryImpl implements ArtistRepository {
     public void deleteById(Long id) {
         artistJpaRepository.deleteById(id);
     }
+    @Override
+    public List<Artist> findByNameContaining(
+            String keyword
+    ) {
+
+        return artistJpaRepository
+                .findByNameContainingIgnoreCase(keyword)
+                .stream()
+                .map(this::mapToDomain)
+                .toList();
+    }
 
     private Artist mapToDomain(ArtistEntity entity) {
 

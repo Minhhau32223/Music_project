@@ -7,6 +7,7 @@ import com.spotify.spotify_backend.application.dto.Response.RegisterResponse;
 import com.spotify.spotify_backend.application.mapper.UserMapper;
 import com.spotify.spotify_backend.application.usecase.PasswordHasher;
 import com.spotify.spotify_backend.application.usecase.RegisterUseCase;
+import com.spotify.spotify_backend.domain.exception.ConflictException;
 import com.spotify.spotify_backend.domain.model.User;
 import com.spotify.spotify_backend.domain.repository.UserRepository;
 
@@ -24,10 +25,10 @@ public class RegisterUseCaseImpl implements RegisterUseCase {
     public RegisterResponse register(RegisterRequest request) {
         // Check if the username or email already exists
         if (userRepository.existsByUsername(request.username())) {
-            throw new RuntimeException("Username already exists");
+            throw new ConflictException("Username already exists");
         }
         if (userRepository.existsByEmail(request.email())) {
-            throw new RuntimeException("Email already exists");
+            throw new ConflictException("Email already exists");
         }
 
         // Hash the password

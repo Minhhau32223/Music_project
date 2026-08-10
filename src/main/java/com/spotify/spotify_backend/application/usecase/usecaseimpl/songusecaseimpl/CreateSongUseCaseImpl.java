@@ -6,6 +6,7 @@ import com.spotify.spotify_backend.application.dto.Request.CreateSongRequest;
 import com.spotify.spotify_backend.application.dto.Response.SongResponse;
 import com.spotify.spotify_backend.application.mapper.SongMapper;
 import com.spotify.spotify_backend.application.usecase.songusecase.CreateSongUseCase;
+import com.spotify.spotify_backend.domain.exception.NotFoundException;
 import com.spotify.spotify_backend.domain.model.Album;
 import com.spotify.spotify_backend.domain.model.Artist;
 import com.spotify.spotify_backend.domain.model.Song;
@@ -30,10 +31,10 @@ public class CreateSongUseCaseImpl implements CreateSongUseCase {
 
 
         Album album = albumRepository.findById(request.albumId())
-                .orElseThrow(() -> new RuntimeException("Album not found"));
+                .orElseThrow(() -> new NotFoundException("Album not found"));
 
         Artist artist = artistRepository.findById(request.artistId())
-                .orElseThrow(() -> new RuntimeException("Artist not found"));
+                .orElseThrow(() -> new NotFoundException("Artist not found"));
 
         String songUrl = cloudinaryRepository.uploadFile(request.file(), "songs");
         String imageUrl = cloudinaryRepository.uploadFile(request.image(), "song-images");

@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import com.spotify.spotify_backend.application.dto.Response.PlaylistResponse;
 import com.spotify.spotify_backend.application.mapper.PlaylistMapper;
 import com.spotify.spotify_backend.application.usecase.playlistusecase.GetPlaylistUseCase;
+import com.spotify.spotify_backend.domain.exception.NotFoundException;
 import com.spotify.spotify_backend.domain.model.Playlist;
 import com.spotify.spotify_backend.domain.repository.PlaylistRepository;
 
@@ -21,7 +22,7 @@ public class GetPlaylistUseCaseImpl implements GetPlaylistUseCase {
         Playlist playlist =
                 repository.findById(id)
                         .orElseThrow(
-                                () -> new RuntimeException(
+                                () -> new NotFoundException(
                                         "Playlist not found"
                                 )
                         );

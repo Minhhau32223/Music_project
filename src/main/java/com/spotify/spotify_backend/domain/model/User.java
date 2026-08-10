@@ -1,4 +1,5 @@
 package com.spotify.spotify_backend.domain.model;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,7 +23,8 @@ public class User {
 
     private Boolean active;
 
-    private Boolean admin;
+    private Role role;
 
-    
+    private String avatarUrl;
+
 }

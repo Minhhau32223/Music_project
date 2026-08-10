@@ -1,5 +1,6 @@
 package com.spotify.spotify_backend.infrastructure.persistence.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,5 +11,6 @@ public interface AlbumJpaRepository extends JpaRepository<AlbumEntity, Long> {
     Optional<AlbumEntity> findById(Long id);
     Optional<AlbumEntity> findByName(String name);
     void deleteByName(String name);
+    List<AlbumEntity> findByNameContainingIgnoreCase(String keyword);
     
 }

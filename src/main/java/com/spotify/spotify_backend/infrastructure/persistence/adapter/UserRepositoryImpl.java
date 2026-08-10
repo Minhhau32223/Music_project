@@ -1,4 +1,5 @@
 package com.spotify.spotify_backend.infrastructure.persistence.adapter;
+
 import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
@@ -13,50 +14,66 @@ import lombok.RequiredArgsConstructor;
 @Repository
 @RequiredArgsConstructor
 public class UserRepositoryImpl implements UserRepository {
+
     private final UserJpaRepository userJpaRepository;
-    
+
     @Override
     public User save(User user) {
-        UserEntity userEntity = UserEntity.builder()
-            .id(user.getId())
-            .username(user.getUsername())
-            .email(user.getEmail())
-            .passwordHash(user.getPasswordHash())
-            .active(user.getActive())
-            .admin(user.getAdmin())
-            .build();
-        UserEntity savedEntity = userJpaRepository.save(userEntity);
-        return mapToDomain(savedEntity);
+
+        UserEntity entity = UserEntity.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .passwordHash(user.getPasswordHash())
+                .active(user.getActive())
+                .role(user.getRole())
+                .avatarUrl(user.getAvatarUrl())
+                .build();
+
+        UserEntity saved = userJpaRepository.save(entity);
+
+        return mapToDomain(saved);
     }
+
     @Override
     public Optional<User> findById(Long id) {
-        return userJpaRepository.findById(id).map(this::mapToDomain);
+        return userJpaRepository.findById(id)
+                .map(this::mapToDomain);
     }
+
     @Override
     public Optional<User> findByUsername(String username) {
-        return userJpaRepository.findByUsername(username).map(this::mapToDomain);
+        return userJpaRepository.findByUsername(username)
+                .map(this::mapToDomain);
     }
+
     @Override
     public Optional<User> findByEmail(String email) {
-        return userJpaRepository.findByEmail(email).map(this::mapToDomain);
+        return userJpaRepository.findByEmail(email)
+                .map(this::mapToDomain);
     }
-    @Override   
+
+    @Override
     public Boolean existsByUsername(String username) {
         return userJpaRepository.existsByUsername(username);
     }
+
     @Override
     public Boolean existsByEmail(String email) {
         return userJpaRepository.existsByEmail(email);
     }
+
     private User mapToDomain(UserEntity entity) {
-        return new User(
-            entity.getId(),
-            entity.getUsername(),
-            entity.getEmail(),
-            entity.getPasswordHash(),
-            entity.getActive(),
-            entity.getAdmin()
-        );
+
+        return User.builder()
+                .id(entity.getId())
+                .username(entity.getUsername())
+                .email(entity.getEmail())
+                .passwordHash(entity.getPasswordHash())
+                .active(entity.getActive())
+                .role(entity.getRole())
+                .avatarUrl(entity.getAvatarUrl())
+                .build();
     }
 
 }

@@ -1,6 +1,7 @@
 package com.spotify.spotify_backend.application.mapper;
 
 import com.spotify.spotify_backend.application.dto.Request.CreateSongRequest;
+import com.spotify.spotify_backend.application.dto.Request.UpdateSongRequest;
 import com.spotify.spotify_backend.application.dto.Response.SongResponse;
 import com.spotify.spotify_backend.domain.model.Song;
 
@@ -24,6 +25,35 @@ public class SongMapper {
 
         return song;
     }
+    public static void updateDomain(
+
+        Song song,
+
+        UpdateSongRequest request
+
+) {
+
+    song.setName(
+            request.name()
+    );
+
+    song.setLyrics(
+            request.lyrics()
+    );
+
+    song.setDuration(
+            request.duration()
+    );
+
+    song.setAlbumId(
+            request.albumId()
+    );
+
+    song.setArtistId(
+            request.artistId()
+    );
+
+}
     public static SongResponse toResponse(
         Song song,
         String albumName,

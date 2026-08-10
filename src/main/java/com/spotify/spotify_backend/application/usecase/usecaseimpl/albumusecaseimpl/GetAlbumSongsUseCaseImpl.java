@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import com.spotify.spotify_backend.application.dto.Response.SongResponse;
 import com.spotify.spotify_backend.application.mapper.SongMapper;
 import com.spotify.spotify_backend.application.usecase.albumusecase.GetAlbumSongsUseCase;
+import com.spotify.spotify_backend.domain.exception.NotFoundException;
 import com.spotify.spotify_backend.domain.model.Album;
 import com.spotify.spotify_backend.domain.model.Artist;
 import com.spotify.spotify_backend.domain.repository.AlbumRepository;
@@ -27,7 +28,7 @@ public class GetAlbumSongsUseCaseImpl implements GetAlbumSongsUseCase {
     public List<SongResponse> execute(Long albumId) {
 
         Album album = albumRepository.findById(albumId)
-                .orElseThrow(() -> new RuntimeException("Album not found"));
+                .orElseThrow(() -> new NotFoundException("Album not found"));
 
         return songRepository.findByAlbumId(albumId)
                 .stream()

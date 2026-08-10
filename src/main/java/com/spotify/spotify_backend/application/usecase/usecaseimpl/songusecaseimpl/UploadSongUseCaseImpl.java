@@ -7,7 +7,7 @@
     import com.spotify.spotify_backend.application.dto.Response.UploadSongResponse;
     import com.spotify.spotify_backend.application.usecase.songusecase.UploadSongUseCase;
     import com.spotify.spotify_backend.domain.repository.CloudinaryRepository;
-
+    import com.spotify.spotify_backend.domain.exception.FileUploadException;
     import lombok.RequiredArgsConstructor;
 
     @Service
@@ -34,7 +34,7 @@
         return url;
 
     } catch (Exception e) {
-        throw new RuntimeException("Upload error: " + e.getMessage());
+        throw new FileUploadException("Upload error: " + e.getMessage());
     }
 }
     }

@@ -68,6 +68,17 @@ public class SongRepositoryImpl implements SongRepository {
     public void deleteById(Long id) {
         songJpaRepository.deleteById(id);
     }
+    @Override
+    public List<Song> findByNameContaining(
+            String keyword
+    ) {
+
+        return songJpaRepository
+                .findByNameContainingIgnoreCase(keyword)
+                .stream()
+                .map(this::mapToDomain)
+                .toList();
+    }
 
     private Song mapToDomain(SongEntity entity) {
         return new Song(

@@ -49,7 +49,17 @@ public class AlbumRepositoryImpl implements AlbumRepository {
     public void deleteById(Long id) {
         albumJpaRepository.deleteById(id);
     }
+    @Override
+    public List<Album> findByNameContaining(
+            String keyword
+    ) {
 
+        return albumJpaRepository
+                .findByNameContainingIgnoreCase(keyword)
+                .stream()
+                .map(this::mapToDomain)
+                .toList();
+    }
     private Album mapToDomain(AlbumEntity entity) {
 
         Album album = new Album();
@@ -62,5 +72,6 @@ public class AlbumRepositoryImpl implements AlbumRepository {
 
         return album;
     }
+
 
 }

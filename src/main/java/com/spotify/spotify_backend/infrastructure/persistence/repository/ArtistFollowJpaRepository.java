@@ -23,8 +23,5 @@ public interface ArtistFollowJpaRepository
             Long userId
     );
 
-    void deleteByUserIdAndArtistId(
-            Long userId,
-            Long artistId
-    );
+    void deleteByUserIdAndArtistId(Long userId,Long artistId);
 }

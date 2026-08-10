@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 public class AuthController {
     private final RegisterUseCase registerUseCase;
     private final LoginUsecaseImpl loginUsecaseImpl;
-    @PostMapping("/register")
+    @PostMapping("/register/")
     public ResponseEntity<?> register( @Valid @RequestBody RegisterRequest request) {
         try {
             RegisterResponse response = registerUseCase.register(request);
@@ -32,7 +32,7 @@ public class AuthController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-    @PostMapping("/login")
+    @PostMapping("/login/")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
         try {
             LoginResponse response = loginUsecaseImpl.execute(request);

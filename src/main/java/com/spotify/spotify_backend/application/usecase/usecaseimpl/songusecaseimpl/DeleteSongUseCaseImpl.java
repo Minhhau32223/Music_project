@@ -4,6 +4,7 @@ package com.spotify.spotify_backend.application.usecase.usecaseimpl.songusecasei
 import org.springframework.stereotype.Service;
 
 import com.spotify.spotify_backend.application.usecase.songusecase.DeleteSongUseCase;
+import com.spotify.spotify_backend.domain.exception.NotFoundException;
 import com.spotify.spotify_backend.domain.repository.SongRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -16,7 +17,7 @@ public class DeleteSongUseCaseImpl implements DeleteSongUseCase{
     public void execute(Long id) {
 
         songRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Song not found"));
+                .orElseThrow(() -> new NotFoundException("Song not found"));
 
         songRepository.deleteById(id);
     }

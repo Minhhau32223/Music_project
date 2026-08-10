@@ -3,6 +3,7 @@ package com.spotify.spotify_backend.application.usecase.usecaseimpl.songusecasei
 import com.spotify.spotify_backend.application.usecase.songusecase.StreamSongUseCase;
 import com.spotify.spotify_backend.domain.model.Song;
 import com.spotify.spotify_backend.domain.repository.SongRepository;
+import com.spotify.spotify_backend.domain.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +17,6 @@ public class StreamSongUseCaseImpl implements StreamSongUseCase {
     public Song execute(Long songId) {
 
         return songRepository.findById(songId)
-                .orElseThrow(() -> new RuntimeException("Song not found"));
+                .orElseThrow(() -> new NotFoundException("Song not found"));
     }
 }

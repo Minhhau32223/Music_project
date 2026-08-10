@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service;
 
 import com.spotify.spotify_backend.application.dto.Request.AddSongToPlaylistRequest;
 import com.spotify.spotify_backend.application.usecase.playplistsongusecase.AddSongToPlaylistUseCase;
+import com.spotify.spotify_backend.domain.exception.ConflictException;
+import com.spotify.spotify_backend.domain.exception.NotFoundException;
 import com.spotify.spotify_backend.domain.model.PlaylistSong;
 import com.spotify.spotify_backend.domain.repository.PlaylistRepository;
 import com.spotify.spotify_backend.domain.repository.PlaylistSongRepository;
@@ -33,7 +35,7 @@ public class AddSongToPlaylistUseCaseImpl
                         playlistId
                 )
                 .orElseThrow(
-                        () -> new RuntimeException(
+                        () -> new NotFoundException(
                                 "Playlist not found"
                         )
                 );
@@ -42,7 +44,7 @@ public class AddSongToPlaylistUseCaseImpl
                         request.songId()
                 )
                 .orElseThrow(
-                        () -> new RuntimeException(
+                        () -> new NotFoundException(
                                 "Song not found"
                         )
                 );
@@ -57,7 +59,7 @@ public class AddSongToPlaylistUseCaseImpl
 
         if (exists) {
 
-            throw new RuntimeException(
+            throw new ConflictException(
                     "Song already exists in playlist"
             );
         }

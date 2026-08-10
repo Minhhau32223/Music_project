@@ -9,4 +9,7 @@ public interface AlbumRepository {
     Optional<Album> findById(Long id);
     List<Album> findAll();
     void deleteById(Long id);
+    List<Album> findByNameContaining(
+        String keyword
+);
 }

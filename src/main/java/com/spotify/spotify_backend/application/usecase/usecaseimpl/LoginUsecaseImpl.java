@@ -30,7 +30,7 @@ public class LoginUsecaseImpl implements LoginUsecase {
             throw new InvalidCredentialException("Password does not match");
         }
         String accessToken =
-        jwtProvider.generateToken(user.getId());
+        jwtProvider.generateToken(user.getId(), user.getRole());
         return new LoginResponse(user.getId(), user.getUsername(), user.getEmail(),accessToken);
     }
 }
