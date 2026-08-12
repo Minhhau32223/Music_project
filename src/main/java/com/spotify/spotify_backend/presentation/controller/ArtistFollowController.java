@@ -2,6 +2,7 @@ package com.spotify.spotify_backend.presentation.controller;
 
 import java.util.List;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,46 +22,33 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ArtistFollowController {
 
-    private final FollowArtistUseCase
-            followArtistUseCase;
+    private final FollowArtistUseCase followArtistUseCase;
+    private final UnfollowArtistUseCase unfollowArtistUseCase;
+    private final GetFollowedArtistsUseCase getFollowedArtistsUseCase;
 
-    private final UnfollowArtistUseCase
-            unfollowArtistUseCase;
-
-    private final GetFollowedArtistsUseCase
-            getFollowedArtistsUseCase;
-
-    @PostMapping("/{userId}/{artistId}/")
+    @PostMapping("/{artistId}/")
     public void followArtist(
-            @PathVariable Long userId,
+            Authentication authentication,
             @PathVariable Long artistId
     ) {
-
-        followArtistUseCase.execute(
-                userId,
-                artistId
-        );
+        Long userId = (Long) authentication.getPrincipal();
+        followArtistUseCase.execute(userId, artistId);
     }
 
-    @DeleteMapping("/{userId}/{artistId}/")
+    @DeleteMapping("/{artistId}/")
     public void unfollowArtist(
-            @PathVariable Long userId,
+            Authentication authentication,
             @PathVariable Long artistId
     ) {
-
-        unfollowArtistUseCase.execute(
-                userId,
-                artistId
-        );
+        Long userId = (Long) authentication.getPrincipal();
+        unfollowArtistUseCase.execute(userId, artistId);
     }
 
-    @GetMapping("/{userId}/")
-    public List<ArtistResponse>
-    getFollowedArtists(
-            @PathVariable Long userId
+    @GetMapping("/me/")
+    public List<ArtistResponse> getFollowedArtists(
+            Authentication authentication
     ) {
-
-        return getFollowedArtistsUseCase
-                .execute(userId);
+        Long userId = (Long) authentication.getPrincipal();
+        return getFollowedArtistsUseCase.execute(userId);
     }
 }

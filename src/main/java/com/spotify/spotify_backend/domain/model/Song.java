@@ -31,5 +31,6 @@ public class Song {
     private Long albumId;
 
     private Long artistId;
+    private java.time.LocalDateTime createdAt;
 }
 

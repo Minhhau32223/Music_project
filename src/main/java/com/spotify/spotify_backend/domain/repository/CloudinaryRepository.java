@@ -5,4 +5,6 @@ import org.springframework.web.multipart.MultipartFile;
 public interface CloudinaryRepository {
 
     String uploadFile(MultipartFile file, String folder);
+
+    void deleteFile(String publicId);
 }

@@ -13,7 +13,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.spotify.spotify_backend.application.dto.Request.CreateSongRequest;
+import com.spotify.spotify_backend.application.dto.Request.SongFilterRequest;
+import com.spotify.spotify_backend.application.dto.Response.PageResponse;
 import com.spotify.spotify_backend.application.dto.Response.SongResponse;
+import com.spotify.spotify_backend.application.usecase.searchusecase.FilterSongsUseCase;
 import com.spotify.spotify_backend.application.usecase.songusecase.CreateSongUseCase;
 import com.spotify.spotify_backend.application.usecase.songusecase.DeleteSongUseCase;
 import com.spotify.spotify_backend.application.usecase.songusecase.GetAllSongsUseCase;
@@ -31,6 +34,19 @@ public class SongController {
     private final GetSongUseCase getSongUseCase;
     private final GetAllSongsUseCase getAllSongsUseCase;
     private final DeleteSongUseCase deleteSongUseCase;
+    private final FilterSongsUseCase filterSongsUseCase;
+
+    /**
+     * GET /api/songs/filter
+     */
+    @GetMapping("/filter")
+    public ResponseEntity<PageResponse<SongResponse>> filterSongs(
+            SongFilterRequest request
+    ) {
+        return ResponseEntity.ok(
+                filterSongsUseCase.execute(request)
+        );
+    }
 
     /**
      * GET /api/songs/

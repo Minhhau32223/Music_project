@@ -11,4 +11,8 @@ public interface SongRepository {
     List<Song> findByAlbumId(Long albumId);
     void deleteById(Long id);
     List<Song> findByNameContaining(String keyword);
+    List<Song> findTopSongs(int limit);
+    List<Song> findNewReleases(int limit);
+    List<Song> findRecommendedSongs(List<Long> artistIds, List<Long> albumIds, List<Long> excludedSongIds, int limit);
+    com.spotify.spotify_backend.application.dto.Response.PageResponse<Song> findSongsByFilters(com.spotify.spotify_backend.application.dto.Request.SongFilterRequest request);
 }

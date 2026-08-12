@@ -2,6 +2,7 @@ package com.spotify.spotify_backend.presentation.controller;
 
 import java.util.List;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,46 +22,33 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class FavoriteSongController {
 
-    private final AddFavoriteSongUseCase
-            addFavoriteSongUseCase;
+    private final AddFavoriteSongUseCase addFavoriteSongUseCase;
+    private final RemoveFavoriteSongUseCase removeFavoriteSongUseCase;
+    private final GetFavoriteSongsUseCase getFavoriteSongsUseCase;
 
-    private final RemoveFavoriteSongUseCase
-            removeFavoriteSongUseCase;
-
-    private final GetFavoriteSongsUseCase
-            getFavoriteSongsUseCase;
-
-    @PostMapping("/{userId}/{songId}")
+    @PostMapping("/{songId}")
     public void addFavoriteSong(
-            @PathVariable Long userId,
+            Authentication authentication,
             @PathVariable Long songId
     ) {
-
-        addFavoriteSongUseCase.execute(
-                userId,
-                songId
-        );
+        Long userId = (Long) authentication.getPrincipal();
+        addFavoriteSongUseCase.execute(userId, songId);
     }
 
-    @DeleteMapping("/{userId}/{songId}")
+    @DeleteMapping("/{songId}")
     public void removeFavoriteSong(
-            @PathVariable Long userId,
+            Authentication authentication,
             @PathVariable Long songId
     ) {
-
-        removeFavoriteSongUseCase.execute(
-                userId,
-                songId
-        );
+        Long userId = (Long) authentication.getPrincipal();
+        removeFavoriteSongUseCase.execute(userId, songId);
     }
 
-    @GetMapping("/{userId}")
+    @GetMapping("/me")
     public List<SongResponse> getFavoriteSongs(
-            @PathVariable Long userId
+            Authentication authentication
     ) {
-
-        return getFavoriteSongsUseCase.execute(
-                userId
-        );
+        Long userId = (Long) authentication.getPrincipal();
+        return getFavoriteSongsUseCase.execute(userId);
     }
 }

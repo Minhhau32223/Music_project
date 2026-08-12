@@ -1,8 +1,9 @@
 package com.spotify.spotify_backend.application.usecase.songusecase;
 
-import com.spotify.spotify_backend.domain.model.Song;
+import com.spotify.spotify_backend.application.dto.Response.StreamingResponse;
 
 public interface StreamSongUseCase {
-    Song execute(Long songId);
+
+    StreamingResponse execute(Long songId);
 
 }

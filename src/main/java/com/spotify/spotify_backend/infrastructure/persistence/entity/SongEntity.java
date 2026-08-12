@@ -40,4 +40,11 @@ public class SongEntity {
     @Column(nullable = false)
     private Long artistId;
 
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private java.time.LocalDateTime createdAt;
+
+    @jakarta.persistence.PrePersist
+    protected void onCreate() {
+        this.createdAt = java.time.LocalDateTime.now();
+    }
 }

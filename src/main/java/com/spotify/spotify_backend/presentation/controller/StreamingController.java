@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.spotify.spotify_backend.application.dto.Response.StreamingResponse;
 import com.spotify.spotify_backend.application.usecase.songusecase.StreamSongUseCase;
-import com.spotify.spotify_backend.domain.model.Song;
 
 import lombok.RequiredArgsConstructor;
 
@@ -19,15 +19,21 @@ import lombok.RequiredArgsConstructor;
 public class StreamingController {
     private final StreamSongUseCase streamSongUseCase;
 
-   @GetMapping("/song/{id}")
-public ResponseEntity<Void> streamSong(@PathVariable Long id) {
+    // Trả về JSON metadata (cho frontend cần biết URL + Type)
+    @GetMapping("/song/{id}")
+    public ResponseEntity<StreamingResponse> getStreamInfo(@PathVariable Long id) {
+        StreamingResponse response = streamSongUseCase.execute(id);
+        return ResponseEntity.ok(response);
+    }
 
-    Song song = streamSongUseCase.execute(id);
+    // Direct redirect cho browser <audio src="..."> tự động phát
+    @GetMapping("/song/{id}/play")
+    public ResponseEntity<Void> playSongDirectly(@PathVariable Long id) {
+        StreamingResponse response = streamSongUseCase.execute(id);
 
-    return ResponseEntity.status(HttpStatus.FOUND)
-            .header(HttpHeaders.LOCATION, song.getFilePath())
-            .build();
-         
-}
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .header(HttpHeaders.LOCATION, response.streamUrl())
+                .build();
+    }
 }
 
