@@ -19,7 +19,7 @@ public class StreamSongUseCaseImpl implements StreamSongUseCase {
     @Override
     public StreamingResponse execute(Long songId) {
 
-        Song song = songRepository.findById(songId)
+        Song song = songRepository.findPublishedById(songId)
                 .orElseThrow(() -> new NotFoundException("Song not found"));
 
         return new StreamingResponse(

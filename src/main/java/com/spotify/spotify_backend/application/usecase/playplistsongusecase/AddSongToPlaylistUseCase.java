@@ -3,6 +3,7 @@ import com.spotify.spotify_backend.application.dto.Request.AddSongToPlaylistRequ
 
 public interface AddSongToPlaylistUseCase {
     void execute(
+            Long userId,
             Long playlistId,
             AddSongToPlaylistRequest request
     );

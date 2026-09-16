@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
 
 import com.spotify.spotify_backend.application.dto.Request.AddSongToPlaylistRequest;
 import com.spotify.spotify_backend.application.dto.Response.SongResponse;
@@ -17,6 +18,7 @@ import com.spotify.spotify_backend.application.usecase.playplistsongusecase.GetP
 import com.spotify.spotify_backend.application.usecase.playplistsongusecase.RemoveSongFromPlaylistUseCase;
 
 import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/playlists")
@@ -34,11 +36,13 @@ public class PlaylistSongController {
 
     @PostMapping("/{playlistId}/songs")
     public void addSong(
+            Authentication authentication,
             @PathVariable Long playlistId,
-            @RequestBody AddSongToPlaylistRequest request
+            @Valid @RequestBody AddSongToPlaylistRequest request
     ) {
 
         addSongToPlaylistUseCase.execute(
+                (Long) authentication.getPrincipal(),
                 playlistId,
                 request
         );
@@ -48,11 +52,13 @@ public class PlaylistSongController {
             "/{playlistId}/songs/{songId}"
     )
     public void removeSong(
+            Authentication authentication,
             @PathVariable Long playlistId,
             @PathVariable Long songId
     ) {
 
         removeSongFromPlaylistUseCase.execute(
+                (Long) authentication.getPrincipal(),
                 playlistId,
                 songId
         );

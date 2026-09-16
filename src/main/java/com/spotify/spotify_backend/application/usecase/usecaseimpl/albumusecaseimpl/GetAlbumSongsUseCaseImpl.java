@@ -27,10 +27,10 @@ public class GetAlbumSongsUseCaseImpl implements GetAlbumSongsUseCase {
     @Override
     public List<SongResponse> execute(Long albumId) {
 
-        Album album = albumRepository.findById(albumId)
+        Album album = albumRepository.findPublishedById(albumId)
                 .orElseThrow(() -> new NotFoundException("Album not found"));
 
-        return songRepository.findByAlbumId(albumId)
+        return songRepository.findPublishedByAlbumId(albumId)
                 .stream()
                 .map(song -> {
 

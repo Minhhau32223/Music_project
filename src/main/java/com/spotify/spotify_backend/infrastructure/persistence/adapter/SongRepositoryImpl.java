@@ -9,9 +9,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.transaction.annotation.Transactional;
 
-import com.spotify.spotify_backend.application.dto.Request.SongFilterRequest;
-import com.spotify.spotify_backend.application.dto.Response.PageResponse;
+import com.spotify.spotify_backend.application.dto.Request.SongQuery;
+import com.spotify.spotify_backend.application.dto.Response.PageResult;
 import com.spotify.spotify_backend.domain.model.Song;
 import com.spotify.spotify_backend.domain.repository.SongRepository;
 import com.spotify.spotify_backend.infrastructure.persistence.entity.SongEntity;
@@ -23,23 +25,26 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SongRepositoryImpl implements SongRepository {
 
+    private static final String PUBLISHED = "PUBLISHED";
+
     private final SongJpaRepository songJpaRepository;
 
     @Override
+    @Transactional
+    @CacheEvict(cacheNames = {"topSongs", "newReleases"}, allEntries = true)
     public Song save(Song song) {
 
-        SongEntity entity = SongEntity.builder()
-                .id(song.getId())
-                .name(song.getName())
-                .file(song.getFilePath())
-                .image(song.getImagePath())
-                .lyrics(song.getLyrics())
-                .duration(song.getDuration())
-                .playCount(song.getPlayCount())
-                .albumId(song.getAlbumId())
-                .artistId(song.getArtistId())
-                .createdAt(song.getCreatedAt())
-                .build();
+        SongEntity entity = song.getId() == null
+                ? SongEntity.builder().status(PUBLISHED).createdAt(song.getCreatedAt()).build()
+                : songJpaRepository.findById(song.getId()).orElseThrow();
+        entity.setName(song.getName());
+        entity.setFile(song.getFilePath());
+        entity.setImage(song.getImagePath());
+        entity.setLyrics(song.getLyrics());
+        entity.setDuration(song.getDuration());
+        entity.setPlayCount(song.getPlayCount());
+        entity.setAlbumId(song.getAlbumId());
+        entity.setArtistId(song.getArtistId());
 
         SongEntity savedEntity = songJpaRepository.save(entity);
 
@@ -72,6 +77,8 @@ public class SongRepositoryImpl implements SongRepository {
     }
 
     @Override
+    @Transactional
+    @CacheEvict(cacheNames = {"topSongs", "newReleases"}, allEntries = true)
     public void deleteById(Long id) {
         songJpaRepository.deleteById(id);
     }
@@ -85,6 +92,28 @@ public class SongRepositoryImpl implements SongRepository {
                 .stream()
                 .map(this::mapToDomain)
                 .toList();
+    }
+
+    @Override
+    public Optional<Song> findPublishedById(Long id) {
+        return songJpaRepository.findByIdAndStatus(id, PUBLISHED).map(this::mapToDomain);
+    }
+
+    @Override
+    public List<Song> findAllPublished() {
+        return songJpaRepository.findByStatus(PUBLISHED).stream().map(this::mapToDomain).toList();
+    }
+
+    @Override
+    public List<Song> findPublishedByAlbumId(Long albumId) {
+        return songJpaRepository.findByAlbumIdAndStatus(albumId, PUBLISHED)
+                .stream().map(this::mapToDomain).toList();
+    }
+
+    @Override
+    public List<Song> findPublishedByNameContaining(String keyword) {
+        return songJpaRepository.findByNameContainingIgnoreCaseAndStatus(keyword, PUBLISHED)
+                .stream().map(this::mapToDomain).toList();
     }
 
     @Override
@@ -109,7 +138,7 @@ public class SongRepositoryImpl implements SongRepository {
     public List<Song> findRecommendedSongs(List<Long> artistIds, List<Long> albumIds, List<Long> excludedSongIds, int limit) {
         List<Long> artists = (artistIds == null || artistIds.isEmpty()) ? List.of(-1L) : artistIds;
         List<Long> albums = (albumIds == null || albumIds.isEmpty()) ? List.of(-1L) : albumIds;
-        List<Long> excluded = (excludedSongIds == null || excludedSongIds.isEmpty()) ? null : excludedSongIds;
+        List<Long> excluded = (excludedSongIds == null || excludedSongIds.isEmpty()) ? List.of(-1L) : excludedSongIds;
 
         Pageable pageable = PageRequest.of(0, limit);
         return songJpaRepository.findRecommendedSongs(artists, albums, excluded, pageable)
@@ -119,20 +148,12 @@ public class SongRepositoryImpl implements SongRepository {
     }
 
     @Override
-    public PageResponse<Song> findSongsByFilters(SongFilterRequest request) {
-        int page = request.page() != null ? request.page() : 0;
-        int size = request.size() != null ? request.size() : 10;
-
-        Sort sort = Sort.unsorted();
-        if (request.sortBy() != null && !request.sortBy().isBlank()) {
-            Sort.Direction direction = Sort.Direction.ASC;
-            if (request.sortDirection() != null && request.sortDirection().equalsIgnoreCase("DESC")) {
-                direction = Sort.Direction.DESC;
-            }
-            sort = Sort.by(direction, request.sortBy());
+    public PageResult<Song> findSongsByFilters(SongQuery request) {
+        Sort sort = Sort.by(request.descending() ? Sort.Direction.DESC : Sort.Direction.ASC, request.sortBy());
+        if (!request.sortBy().equals("id")) {
+            sort = sort.and(Sort.by("id"));
         }
-
-        Pageable pageable = PageRequest.of(page, size, sort);
+        Pageable pageable = PageRequest.of(request.page(), request.size(), sort);
         Page<SongEntity> entityPage =
                 songJpaRepository.findSongsByFilters(request.artistId(), request.albumId(), pageable);
 
@@ -140,7 +161,7 @@ public class SongRepositoryImpl implements SongRepository {
                 .map(this::mapToDomain)
                 .toList();
 
-        return new PageResponse<>(
+        return new PageResult<>(
                 songs,
                 entityPage.getNumber(),
                 entityPage.getSize(),
@@ -148,6 +169,13 @@ public class SongRepositoryImpl implements SongRepository {
                 entityPage.getTotalPages(),
                 entityPage.isLast()
         );
+    }
+
+    @Override
+    public List<Song> findTopSongsExcluding(List<Long> excludedSongIds, int limit) {
+        var excluded = excludedSongIds.isEmpty() ? List.of(-1L) : excludedSongIds;
+        return songJpaRepository.findTopSongsExcluding(excluded, PageRequest.of(0, limit))
+                .stream().map(this::mapToDomain).toList();
     }
 
     private Song mapToDomain(SongEntity entity) {

@@ -24,9 +24,9 @@ public class GetSongUseCaseImpl implements GetSongUseCase {
     @Override
     public SongResponse execute(Long id) {
 
-        Song song = songRepository.findById(id)
+        Song song = songRepository.findPublishedById(id)
                 .orElseThrow(() -> new NotFoundException("Song not found"));
-        Album album =albumRepository.findById(song.getAlbumId())
+        Album album =albumRepository.findPublishedById(song.getAlbumId())
                                       .orElseThrow(() -> new NotFoundException("Album not found"));;
         Artist artist = artistRepository.findById(song.getArtistId())
                                         .orElseThrow(() -> new NotFoundException("Artist not found"));

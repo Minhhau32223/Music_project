@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.spotify.spotify_backend.domain.model.Artist;
 import com.spotify.spotify_backend.domain.repository.ArtistRepository;
@@ -19,14 +21,16 @@ public class ArtistRepositoryImpl implements ArtistRepository {
     private final ArtistJpaRepository artistJpaRepository;
 
     @Override
+    @Transactional
+    @CacheEvict(cacheNames = {"topSongs", "newReleases"}, allEntries = true)
     public Artist save(Artist artist) {
 
-        ArtistEntity entity = ArtistEntity.builder()
-                .id(artist.getId())
-                .name(artist.getName())
-                .bio(artist.getBio())
-                .profileImage(artist.getProfileImage())
-                .build();
+        ArtistEntity entity = artist.getId() == null
+                ? ArtistEntity.builder().build()
+                : artistJpaRepository.findById(artist.getId()).orElseThrow();
+        entity.setName(artist.getName());
+        entity.setBio(artist.getBio());
+        entity.setProfileImage(artist.getProfileImage());
 
         ArtistEntity savedEntity = artistJpaRepository.save(entity);
 
@@ -48,6 +52,8 @@ public class ArtistRepositoryImpl implements ArtistRepository {
     }
 
     @Override
+    @Transactional
+    @CacheEvict(cacheNames = {"topSongs", "newReleases"}, allEntries = true)
     public void deleteById(Long id) {
         artistJpaRepository.deleteById(id);
     }

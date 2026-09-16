@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -30,10 +31,18 @@ public class SecurityConfig {
         http
             .cors(Customizer.withDefaults())
             .csrf(csrf -> csrf.disable())
+            .sessionManagement(session -> session.sessionCreationPolicy(
+                    SessionCreationPolicy.STATELESS))
 
             .authorizeHttpRequests(auth -> auth
                 // PUBLIC
-                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/health/**",
+                        "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                .requestMatchers("/actuator/**").denyAll()
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/artist/**").hasRole("ARTIST")
+                .requestMatchers("/api/artist-applications/**").authenticated()
                 .requestMatchers(HttpMethod.GET,
                         "/api/songs/**",
                         "/api/albums/**",
@@ -70,9 +79,9 @@ public class SecurityConfig {
                         "/api/recently-played/**",
                         "/api/recommendations/personalized"
                 ).authenticated()
-                .requestMatchers(HttpMethod.POST, "/api/playlists/create").authenticated()
-                .requestMatchers(HttpMethod.PUT, "/api/playlists/{id}").authenticated()
-                .requestMatchers(HttpMethod.DELETE, "/api/playlists/{id}").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/playlists/**").authenticated()
+                .requestMatchers(HttpMethod.PUT, "/api/playlists/**").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/api/playlists/**").authenticated()
 
                 // Default
                 .anyRequest().authenticated()

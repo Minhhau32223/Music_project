@@ -2,11 +2,15 @@ package com.spotify.spotify_backend;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.spotify.spotify_backend.application.dto.Request.LoginRequest;
+import com.spotify.spotify_backend.application.dto.Request.RegisterRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
@@ -29,6 +33,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @Transactional
 public abstract class BaseIntegrationTest {
+    @DynamicPropertySource
+    static void database(DynamicPropertyRegistry registry) {
+        TestDatabase.configure(registry);
+    }
 
     @Autowired
     protected MockMvc mockMvc;
@@ -106,10 +114,10 @@ public abstract class BaseIntegrationTest {
      * Đăng ký + Đăng nhập với credentials cụ thể, trả về token.
      */
     protected String registerAndLogin(String username, String email, String password) throws Exception {
-        var register = new com.spotify.spotify_backend.application.dto.Request.RegisterRequest(username, email, password);
+        var register = new RegisterRequest(username, email, password);
         postRequest("/api/auth/register/", register, null);
 
-        var login = new com.spotify.spotify_backend.application.dto.Request.LoginRequest(email, password);
+        var login = new LoginRequest(email, password);
         MvcResult result = postRequest("/api/auth/login/", login, null)
                 .andExpect(status().isOk())
                 .andReturn();

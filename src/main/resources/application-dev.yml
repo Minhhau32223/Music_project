@@ -1,0 +1,13 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+# Redis is optional when running Maven locally. Compose enables it.
+springdoc:
+  api-docs:
+    enabled: true
+app:
+  seed:
+    enabled: ${APP_SEED_ENABLED:false}
+  swagger-ui:
+    enabled: true

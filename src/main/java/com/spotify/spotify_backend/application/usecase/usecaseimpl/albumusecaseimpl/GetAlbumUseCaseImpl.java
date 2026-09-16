@@ -19,7 +19,7 @@ public class GetAlbumUseCaseImpl implements GetAlbumUseCase {
     @Override
     public AlbumResponse execute(Long id) {
 
-        Album album = albumRepository.findById(id)
+        Album album = albumRepository.findPublishedById(id)
                 .orElseThrow(() -> new NotFoundException("Album not found"));
 
         return AlbumMapper.toResponse(album);

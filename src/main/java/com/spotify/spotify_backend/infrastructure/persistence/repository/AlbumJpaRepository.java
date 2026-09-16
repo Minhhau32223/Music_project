@@ -12,5 +12,10 @@ public interface AlbumJpaRepository extends JpaRepository<AlbumEntity, Long> {
     Optional<AlbumEntity> findByName(String name);
     void deleteByName(String name);
     List<AlbumEntity> findByNameContainingIgnoreCase(String keyword);
+    Optional<AlbumEntity> findByIdAndStatus(Long id, String status);
+    List<AlbumEntity> findByStatus(String status);
+    List<AlbumEntity> findByNameContainingIgnoreCaseAndStatus(String keyword, String status);
+    List<AlbumEntity> findByArtistIdOrderByCreatedAtDesc(Long artistId);
+    List<AlbumEntity> findByStatusOrderByCreatedAtAsc(String status);
     
 }

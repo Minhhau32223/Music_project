@@ -88,7 +88,7 @@ class SongControllerTest extends BaseIntegrationTest {
                     org.springframework.test.web.servlet.request.MockMvcRequestBuilders
                             .get(FILTER_URL)
                             .param("sortBy", "playCount")
-                            .param("sortDir", "desc")
+                            .param("sortDirection", "DESC")
                             .param("page", "0")
                             .param("size", "5")
             ).andExpect(status().isOk());

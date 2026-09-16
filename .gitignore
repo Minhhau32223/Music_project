@@ -31,3 +31,55 @@ build/
 
 ### VS Code ###
 .vscode/
+
+.env
+.env.*
+!.env.example
+*.log
+
+# Local secrets and credentials
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+secrets/
+
+# Local music imports and media (stored through Cloudinary)
+*.mp3
+*.wav
+*.flac
+*.m4a
+*.zip
+
+# Database exports and local database tooling
+*.sql.gz
+*.dump
+*.backup
+pgdata/
+postgres-data/
+redis-data/
+.pgadmin/
+
+# Build, test and coverage artefacts
+target/
+coverage/
+test-results/
+surefire-reports/
+failsafe-reports/
+jacoco.exec
+
+# Local tool caches
+.m2/
+.gradle/
+.cache/
+
+# Editor and operating-system files
+.fleet/
+.history/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+Desktop.ini

@@ -19,11 +19,13 @@ public class CreatePlaylistUseCaseImpl implements CreatePlaylistUseCase{
 
     @Override
     public PlaylistResponse execute(
+            Long userId,
             CreatePlaylistRequest request
     ) {
 
         Playlist playlist =
                 PlaylistMapper.toDomain(request);
+        playlist.setUserId(userId);
 
         Playlist saved =
                 playlistRepository.save(playlist);

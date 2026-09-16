@@ -2,6 +2,7 @@ package com.spotify.spotify_backend.presentation.controller;
 
 import com.spotify.spotify_backend.BaseIntegrationTest;
 import com.spotify.spotify_backend.application.dto.Request.CreatePlaylistRequest;
+import com.spotify.spotify_backend.application.dto.Request.AddSongToPlaylistRequest;
 import com.spotify.spotify_backend.application.dto.Request.UpdatePlaylistRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -35,7 +36,7 @@ class PlaylistControllerTest extends BaseIntegrationTest {
         Long currentUserId = objectMapper.readTree(meResult.getResponse().getContentAsString()).get("id").asLong();
 
         // Tạo một playlist để dùng trong các test
-        var createRequest = new CreatePlaylistRequest("My Test Playlist", null, currentUserId);
+        var createRequest = new CreatePlaylistRequest("My Test Playlist", null);
         MvcResult result = postRequest(BASE_URL + "/create", createRequest, userToken)
                 .andExpect(status().isOk())
                 .andReturn();
@@ -92,7 +93,7 @@ class PlaylistControllerTest extends BaseIntegrationTest {
         @Test
         @DisplayName("TC-PLAYLIST-04: Tạo playlist thành công")
         void createPlaylist_withValidToken_shouldReturn200() throws Exception {
-            var request = new CreatePlaylistRequest("New Playlist", null, null);
+            var request = new CreatePlaylistRequest("New Playlist", null);
             postRequest(BASE_URL + "/create", request, userToken)
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.name").value("New Playlist"));
@@ -101,7 +102,7 @@ class PlaylistControllerTest extends BaseIntegrationTest {
         @Test
         @DisplayName("TC-PLAYLIST-05: Tạo playlist không có JWT - 401")
         void createPlaylist_withoutToken_shouldReturn401() throws Exception {
-            var request = new CreatePlaylistRequest("New Playlist", null, null);
+            var request = new CreatePlaylistRequest("New Playlist", null);
             postRequest(BASE_URL + "/create", request, null)
                     .andExpect(status().isUnauthorized());
         }
@@ -174,7 +175,7 @@ class PlaylistControllerTest extends BaseIntegrationTest {
         @Test
         @DisplayName("TC-PLAYLIST-11: Thêm bài hát vào playlist - không có JWT thì 401")
         void addSongToPlaylist_withoutToken_shouldReturn401() throws Exception {
-            var request = new com.spotify.spotify_backend.application.dto.Request.AddSongToPlaylistRequest(1L);
+            var request = new AddSongToPlaylistRequest(1L);
             postRequest(BASE_URL + "/" + createdPlaylistId + "/songs", request, null)
                     .andExpect(status().isUnauthorized());
         }
@@ -182,7 +183,7 @@ class PlaylistControllerTest extends BaseIntegrationTest {
         @Test
         @DisplayName("TC-PLAYLIST-12: Thêm bài hát không tồn tại - 404")
         void addSongToPlaylist_songNotFound_shouldReturn404() throws Exception {
-            var request = new com.spotify.spotify_backend.application.dto.Request.AddSongToPlaylistRequest(99999L);
+            var request = new AddSongToPlaylistRequest(99999L);
             postRequest(BASE_URL + "/" + createdPlaylistId + "/songs", request, userToken)
                     .andExpect(status().isNotFound());
         }

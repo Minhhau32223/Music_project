@@ -5,7 +5,9 @@ import com.spotify.spotify_backend.helper.TestDataFactory;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import jakarta.servlet.http.Cookie;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.hamcrest.Matchers.*;
 
@@ -20,6 +22,9 @@ class AuthControllerTest extends BaseIntegrationTest {
 
     private static final String REGISTER_URL = "/api/auth/register/";
     private static final String LOGIN_URL = "/api/auth/login/";
+    private static final String REFRESH_URL = "/api/auth/refresh/";
+    private static final String LOGOUT_URL = "/api/auth/logout/";
+    private static final String REFRESH_COOKIE = "nocturne_refresh";
 
     // ===================== REGISTER TESTS =====================
 
@@ -102,7 +107,8 @@ class AuthControllerTest extends BaseIntegrationTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.accessToken").exists())
                     .andExpect(jsonPath("$.accessToken").isNotEmpty())
-                    .andExpect(jsonPath("$.email").value("testuser@example.com"));
+                    .andExpect(jsonPath("$.email").value("testuser@example.com"))
+                    .andExpect(cookie().httpOnly(REFRESH_COOKIE, true));
         }
 
         @Test
@@ -132,6 +138,41 @@ class AuthControllerTest extends BaseIntegrationTest {
 
             postRequest(LOGIN_URL, loginRequest, null)
                     .andExpect(status().isBadRequest());
+        }
+    }
+
+    @Nested
+    @DisplayName("Refresh and logout session")
+    class SessionTests {
+
+        @Test
+        @DisplayName("TC-AUTH-10: Refresh cookie hợp lệ trả về access token mới")
+        void refresh_withValidCookie_shouldReturnAccessToken() throws Exception {
+            postRequest(REGISTER_URL, TestDataFactory.validRegisterRequest(), null);
+            var login = postRequest(LOGIN_URL, TestDataFactory.validLoginRequest(), null)
+                    .andExpect(status().isOk())
+                    .andReturn();
+            Cookie refreshCookie = login.getResponse().getCookie(REFRESH_COOKIE);
+
+            mockMvc.perform(post(REFRESH_URL).cookie(refreshCookie))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.accessToken").isNotEmpty());
+        }
+
+        @Test
+        @DisplayName("TC-AUTH-11: Thiếu refresh cookie trả về 401")
+        void refresh_withoutCookie_shouldReturn401() throws Exception {
+            mockMvc.perform(post(REFRESH_URL))
+                    .andExpect(status().isUnauthorized());
+        }
+
+        @Test
+        @DisplayName("TC-AUTH-12: Logout xóa refresh cookie")
+        void logout_shouldClearRefreshCookie() throws Exception {
+            mockMvc.perform(post(LOGOUT_URL))
+                    .andExpect(status().isNoContent())
+                    .andExpect(cookie().maxAge(REFRESH_COOKIE, 0))
+                    .andExpect(cookie().httpOnly(REFRESH_COOKIE, true));
         }
     }
 }

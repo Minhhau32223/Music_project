@@ -27,11 +27,11 @@ public class GetAllSongsUseCaseImpl implements GetAllSongsUseCase {
     @Override
     public List<SongResponse> execute() {
 
-        return songRepository.findAll()
+        return songRepository.findAllPublished()
                 .stream()
                 .map(song -> {
 
-                    String albumName = albumRepository.findById(song.getAlbumId())
+                    String albumName = albumRepository.findPublishedById(song.getAlbumId())
                             .map(Album::getName)
                             .orElse(null);
 

@@ -1,5 +1,7 @@
 package com.spotify.spotify_backend.domain.model;
 
+import java.time.LocalDateTime;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -31,6 +33,6 @@ public class Song {
     private Long albumId;
 
     private Long artistId;
-    private java.time.LocalDateTime createdAt;
+    private LocalDateTime createdAt;
 }
 

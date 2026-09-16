@@ -1,14 +1,18 @@
 package com.spotify.spotify_backend.application.usecase.usecaseimpl.recommendationusecaseimpl;
 
+import java.util.ArrayList;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
 import com.spotify.spotify_backend.application.dto.Response.SongResponse;
 import com.spotify.spotify_backend.application.mapper.SongMapper;
+import com.spotify.spotify_backend.application.usecase.QueryLimits;
 import com.spotify.spotify_backend.application.usecase.recommendationusecase.GetPersonalizedRecommendationsUseCase;
 import com.spotify.spotify_backend.domain.model.Album;
 import com.spotify.spotify_backend.domain.model.Artist;
@@ -32,8 +36,9 @@ public class GetPersonalizedRecommendationsUseCaseImpl implements GetPersonalize
 
     @Override
     public List<SongResponse> execute(Long userId, int limit) {
+        QueryLimits.validateLimit(limit);
 
-        List<RecentlyPlayed> history = recentlyPlayedRepository.findByUserId(userId);
+        List<RecentlyPlayed> history = recentlyPlayedRepository.findRecentByUserId(userId, 100);
 
         if (history.isEmpty()) {
             // Nếu không có lịch sử, trả về top songs làm fallback
@@ -41,7 +46,7 @@ public class GetPersonalizedRecommendationsUseCaseImpl implements GetPersonalize
                     .map(song -> {
                         Artist artist = artistRepository.findById(song.getArtistId()).orElse(null);
                         Album album = albumRepository.findById(song.getAlbumId()).orElse(null);
-                        return SongMapper.toResponse(song, artist != null ? artist.getName() : "", album != null ? album.getName() : "");
+                        return SongMapper.toResponse(song, album != null ? album.getName() : "", artist != null ? artist.getName() : "");
                     })
                     .toList();
         }
@@ -68,12 +73,11 @@ public class GetPersonalizedRecommendationsUseCaseImpl implements GetPersonalize
         // Fallback thêm top songs nếu số bài hát gợi ý ít hơn limit mong muốn
         if (recommendedSongs.size() < limit) {
             List<Long> currentRecIds = recommendedSongs.stream().map(Song::getId).toList();
-            List<Song> fallbackSongs = songRepository.findTopSongs(limit * 2).stream()
-                    .filter(s -> !excludedSongIds.contains(s.getId()))
-                    .filter(s -> !currentRecIds.contains(s.getId()))
-                    .limit(limit - recommendedSongs.size())
-                    .toList();
-            recommendedSongs = new java.util.ArrayList<>(recommendedSongs);
+            List<Long> allExcluded = new ArrayList<>(excludedSongIds);
+            allExcluded.addAll(currentRecIds);
+            List<Song> fallbackSongs = songRepository.findTopSongsExcluding(
+                    allExcluded, limit - recommendedSongs.size());
+            recommendedSongs = new ArrayList<>(recommendedSongs);
             recommendedSongs.addAll(fallbackSongs);
         }
 
@@ -83,8 +87,8 @@ public class GetPersonalizedRecommendationsUseCaseImpl implements GetPersonalize
                     Album album = albumRepository.findById(song.getAlbumId()).orElse(null);
                     return SongMapper.toResponse(
                             song,
-                            artist != null ? artist.getName() : "",
-                            album != null ? album.getName() : ""
+                            album != null ? album.getName() : "",
+                            artist != null ? artist.getName() : ""
                     );
                 })
                 .toList();
@@ -95,9 +99,10 @@ public class GetPersonalizedRecommendationsUseCaseImpl implements GetPersonalize
             return Collections.emptyList();
         }
         return ids.stream()
+                .filter(Objects::nonNull)
                 .collect(Collectors.groupingBy(id -> id, Collectors.counting()))
                 .entrySet().stream()
-                .sorted(Map.Entry.<Long, Long>comparingByValue().reversed())
+                .sorted(Map.Entry.<Long, Long>comparingByValue().reversed().thenComparing(Map.Entry.comparingByKey()))
                 .limit(limit)
                 .map(Map.Entry::getKey)
                 .toList();

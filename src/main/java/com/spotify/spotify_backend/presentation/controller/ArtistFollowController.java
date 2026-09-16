@@ -26,7 +26,7 @@ public class ArtistFollowController {
     private final UnfollowArtistUseCase unfollowArtistUseCase;
     private final GetFollowedArtistsUseCase getFollowedArtistsUseCase;
 
-    @PostMapping("/{artistId}/")
+    @PostMapping({"/{artistId}", "/{artistId}/"})
     public void followArtist(
             Authentication authentication,
             @PathVariable Long artistId
@@ -35,7 +35,7 @@ public class ArtistFollowController {
         followArtistUseCase.execute(userId, artistId);
     }
 
-    @DeleteMapping("/{artistId}/")
+    @DeleteMapping({"/{artistId}", "/{artistId}/"})
     public void unfollowArtist(
             Authentication authentication,
             @PathVariable Long artistId
@@ -44,7 +44,7 @@ public class ArtistFollowController {
         unfollowArtistUseCase.execute(userId, artistId);
     }
 
-    @GetMapping("/me/")
+    @GetMapping({"/me", "/me/"})
     public List<ArtistResponse> getFollowedArtists(
             Authentication authentication
     ) {

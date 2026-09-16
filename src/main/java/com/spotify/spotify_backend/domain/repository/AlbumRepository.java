@@ -12,4 +12,7 @@ public interface AlbumRepository {
     List<Album> findByNameContaining(
         String keyword
 );
+    Optional<Album> findPublishedById(Long id);
+    List<Album> findAllPublished();
+    List<Album> findPublishedByNameContaining(String keyword);
 }

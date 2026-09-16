@@ -2,11 +2,13 @@ package com.spotify.spotify_backend.application.usecase.usecaseimpl.recommendati
 
 import java.util.List;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import com.spotify.spotify_backend.application.dto.Response.SongResponse;
 import com.spotify.spotify_backend.application.mapper.SongMapper;
-import com.spotify.spotify_backend.application.usecase.recommendationusecase.GetTopSongsUseCase;
+import com.spotify.spotify_backend.application.usecase.QueryLimits;
+import  com.spotify.spotify_backend.application.usecase.recommendationusecase.GetTopSongsUseCase;
 import com.spotify.spotify_backend.domain.model.Album;
 import com.spotify.spotify_backend.domain.model.Artist;
 import com.spotify.spotify_backend.domain.model.Song;
@@ -25,7 +27,10 @@ public class GetTopSongsUseCaseImpl implements GetTopSongsUseCase {
     private final AlbumRepository albumRepository;
 
     @Override
+    @Cacheable(cacheNames = "topSongs", key = "#limit",
+            condition = "#limit >= 1 && #limit <= 100")
     public List<SongResponse> execute(int limit) {
+       QueryLimits.validateLimit(limit);
         List<Song> songs = songRepository.findTopSongs(limit);
         return songs.stream()
                 .map(song -> {
@@ -33,8 +38,8 @@ public class GetTopSongsUseCaseImpl implements GetTopSongsUseCase {
                     Album album = albumRepository.findById(song.getAlbumId()).orElse(null);
                     return SongMapper.toResponse(
                             song,
-                            artist != null ? artist.getName() : "",
-                            album != null ? album.getName() : ""
+                            album != null ? album.getName() : "",
+                            artist != null ? artist.getName() : ""
                     );
                 })
                 .toList();

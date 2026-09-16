@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import com.spotify.spotify_backend.application.dto.Request.AddSongToPlaylistRequest;
 import com.spotify.spotify_backend.application.usecase.playplistsongusecase.AddSongToPlaylistUseCase;
 import com.spotify.spotify_backend.domain.exception.ConflictException;
+import com.spotify.spotify_backend.domain.exception.ForbiddenException;
 import com.spotify.spotify_backend.domain.exception.NotFoundException;
 import com.spotify.spotify_backend.domain.model.PlaylistSong;
 import com.spotify.spotify_backend.domain.repository.PlaylistRepository;
@@ -27,11 +28,12 @@ public class AddSongToPlaylistUseCaseImpl
 
     @Override
     public void execute(
+            Long userId,
             Long playlistId,
             AddSongToPlaylistRequest request
     ) {
 
-        playlistRepository.findById(
+        var playlist = playlistRepository.findById(
                         playlistId
                 )
                 .orElseThrow(
@@ -39,6 +41,10 @@ public class AddSongToPlaylistUseCaseImpl
                                 "Playlist not found"
                         )
                 );
+
+        if (!userId.equals(playlist.getUserId())) {
+            throw new ForbiddenException("You do not own this playlist");
+        }
 
         songRepository.findById(
                         request.songId()

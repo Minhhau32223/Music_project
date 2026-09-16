@@ -36,9 +36,11 @@ public class SearchUseCaseImpl
             String keyword
     ) {
 
+        String normalizedKeyword = keyword == null ? "" : keyword.trim();
+
         List<SongResponse> songs =
                 songRepository
-                        .findByNameContaining(keyword)
+                        .findPublishedByNameContaining(normalizedKeyword)
                         .stream()
                         .map(song -> {
 
@@ -49,19 +51,19 @@ public class SearchUseCaseImpl
 
                             Album album =
                                     albumRepository
-                                            .findById(song.getAlbumId())
+                                            .findPublishedById(song.getAlbumId())
                                             .orElse(null);
 
                             return SongMapper.toResponse(
 
                                     song,
 
-                                    artist != null
-                                            ? artist.getName()
-                                            : "",
-
                                     album != null
                                             ? album.getName()
+                                            : "",
+
+                                    artist != null
+                                            ? artist.getName()
                                             : ""
 
                             );
@@ -71,14 +73,14 @@ public class SearchUseCaseImpl
 
         List<AlbumResponse> albums =
                 albumRepository
-                        .findByNameContaining(keyword)
+                        .findPublishedByNameContaining(normalizedKeyword)
                         .stream()
                         .map(AlbumMapper::toResponse)
                         .toList();
 
         List<ArtistResponse> artists =
                 artistRepository
-                        .findByNameContaining(keyword)
+                        .findByNameContaining(normalizedKeyword)
                         .stream()
                         .map(ArtistMapper::toResponse)
                         .toList();

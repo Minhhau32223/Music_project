@@ -5,6 +5,7 @@ import com.spotify.spotify_backend.application.dto.Response.PlaylistResponse;
 
 public interface  CreatePlaylistUseCase {
     PlaylistResponse execute(
+            Long userId,
             CreatePlaylistRequest request
     );
 }

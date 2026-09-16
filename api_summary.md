@@ -1,5 +1,7 @@
 # Tổng hợp REST APIs (Sau Phase 3)
 
+> **Lưu ý đồng bộ:** Tài liệu này là bản tổng hợp lịch sử. Contract dùng cho local frontend integration là [API Contract V1](docs/integration/api_contract_v1.md); inventory đầy đủ và gap register nằm trong [docs/integration](docs/integration/). Contract V1 bao gồm refresh/logout, Artist workflow và Admin moderation.
+
 Dưới đây là danh sách toàn bộ các API hiện tại của backend, được gom nhóm theo từng chức năng, bao gồm các tính năng mới bổ sung trong Phase 1, Phase 2, và Phase 3.
 
 ---
@@ -55,9 +57,9 @@ Các thuật toán gợi ý nhạc đa dạng.
 - `POST /api/artists/create/` : Tạo mới nghệ sĩ.
 - `PUT /api/artists/{id}/` : Cập nhật nghệ sĩ (Hỗ trợ upload ảnh mới qua Multipart).
 - `DELETE /api/artists/{id}/` : Xóa nghệ sĩ.
-- `POST /api/artist-follows/{userId}/{artistId}/` : Theo dõi nghệ sĩ.
-- `DELETE /api/artist-follows/{userId}/{artistId}/` : Hủy theo dõi nghệ sĩ.
-- `GET /api/artist-follows/{userId}/` : Lấy danh sách nghệ sĩ user đang theo dõi.
+- `POST /api/artist-follows/{artistId}` : Theo dõi nghệ sĩ.
+- `DELETE /api/artist-follows/{artistId}` : Hủy theo dõi nghệ sĩ.
+- `GET /api/artist-follows/me` : Lấy danh sách nghệ sĩ user đang theo dõi.
 
 ---
 
@@ -74,19 +76,19 @@ Các thuật toán gợi ý nhạc đa dạng.
 ## 8. Danh sách phát (Playlists)
 - `GET /api/playlists/` : Lấy toàn bộ playlist.
 - `GET /api/playlists/{id}` : Lấy chi tiết playlist.
-- `POST /api/playlists/create` : Tạo mới playlist.
-- `PUT /api/playlists/{id}` : Cập nhật playlist.
-- `DELETE /api/playlists/{id}` : Xóa playlist.
+- `POST /api/playlists/create` : Tạo mới playlist với name/image; chủ sở hữu lấy từ JWT.
+- `PUT /api/playlists/{id}` : Cập nhật playlist của chính user trong JWT.
+- `DELETE /api/playlists/{id}` : Xóa playlist của chính user trong JWT.
 - `GET /api/playlists/{playlistId}/songs` : Lấy các bài hát trong playlist.
 - `POST /api/playlists/{playlistId}/songs` : Thêm bài hát vào playlist.
-- `DELETE /api/playlists/{playlistId}/songs/{songId}` : Xóa bài hát khỏi playlist (lưu ý thiếu {songId} ở Controller gốc do code bị cắt, nhưng logic chuẩn là vậy).
+- `DELETE /api/playlists/{playlistId}/songs/{songId}` : Xóa bài hát khỏi playlist.
 
 ---
 
 ## 9. Bài hát yêu thích (Favorites)
-- `GET /api/favorites/{userId}` : Lấy danh sách bài hát yêu thích của User.
-- `POST /api/favorites/{userId}/{songId}` : Thích một bài hát.
-- `DELETE /api/favorites/{userId}/{songId}` : Bỏ thích bài hát.
+- `GET /api/favorites/me` : Lấy danh sách bài hát yêu thích của User.
+- `POST /api/favorites/{songId}` : Thích một bài hát.
+- `DELETE /api/favorites/{songId}` : Bỏ thích bài hát.
 
 ---
 

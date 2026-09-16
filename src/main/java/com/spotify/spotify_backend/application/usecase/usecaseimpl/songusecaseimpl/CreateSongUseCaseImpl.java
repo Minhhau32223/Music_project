@@ -18,6 +18,7 @@ import com.spotify.spotify_backend.domain.repository.SongRepository;
 import lombok.RequiredArgsConstructor;
 
 @Service
+@lombok.extern.slf4j.Slf4j
 @RequiredArgsConstructor
 public class CreateSongUseCaseImpl implements CreateSongUseCase {
 
@@ -49,6 +50,7 @@ public class CreateSongUseCaseImpl implements CreateSongUseCase {
         song.setAlbumId(album.getId());
         song.setArtistId(artist.getId());
         Song saved = songRepository.save(song);
+        log.info("Created song id={}", saved.getId());
 
         return SongMapper.toResponse(
                 saved,

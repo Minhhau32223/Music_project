@@ -1,7 +1,10 @@
 package com.spotify.spotify_backend.infrastructure.persistence.adapter;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.stereotype.Repository;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,19 +18,16 @@ import lombok.RequiredArgsConstructor;
 
 @Repository
 @RequiredArgsConstructor
+@lombok.extern.slf4j.Slf4j
 public class CloudinaryRepositoryImpl implements CloudinaryRepository {
 
     private final Cloudinary cloudinary;
 
     @Override
     public String uploadFile(MultipartFile file, String folder) {
-
+        File tempFile = null;
         try {
-
-            File tempFile = File.createTempFile(
-                    "upload-",
-                    file.getOriginalFilename()
-            );
+            tempFile = File.createTempFile("upload-", ".upload");
             file.transferTo(tempFile);
 
             Map result = cloudinary.uploader().upload(
@@ -35,16 +35,23 @@ public class CloudinaryRepositoryImpl implements CloudinaryRepository {
                     ObjectUtils.asMap(
                             "folder", folder,
                             "resource_type", "auto",
-                            "public_id", file.getOriginalFilename()
-                                    + "_"
-                                    + System.currentTimeMillis()
+                            "public_id", UUID.randomUUID().toString()
                     )
             );
 
             return result.get("secure_url").toString();
 
         } catch (Exception e) {
-            throw new FileUploadException("Upload failed: " + e.getMessage());
+            log.error("Cloudinary upload failed ({})", e.getClass().getSimpleName());
+            throw new FileUploadException("Upload failed");
+        } finally {
+            if (tempFile != null) {
+                try {
+                    Files.deleteIfExists(tempFile.toPath());
+                } catch (IOException e) {
+                    log.warn("Could not remove temporary upload file ({})", e.getClass().getSimpleName());
+                }
+            }
         }
     }
 
@@ -54,7 +61,8 @@ public class CloudinaryRepositoryImpl implements CloudinaryRepository {
         try {
             cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
         } catch (Exception e) {
-            throw new FileUploadException("Delete failed: " + e.getMessage());
+            log.error("Cloudinary deletion failed ({})", e.getClass().getSimpleName());
+            throw new FileUploadException("Delete failed");
         }
     }
 

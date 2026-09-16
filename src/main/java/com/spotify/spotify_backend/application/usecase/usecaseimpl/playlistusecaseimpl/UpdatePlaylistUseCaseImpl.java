@@ -27,7 +27,7 @@ public class UpdatePlaylistUseCaseImpl implements UpdatePlaylistUseCase {
         Playlist playlist = playlistRepository.findById(playlistId)
                 .orElseThrow(() -> new NotFoundException("Playlist not found"));
 
-        if (!playlist.getUserId().equals(userId)) {
+        if (!userId.equals(playlist.getUserId())) {
             throw new ForbiddenException("You do not have permission to update this playlist");
         }
 

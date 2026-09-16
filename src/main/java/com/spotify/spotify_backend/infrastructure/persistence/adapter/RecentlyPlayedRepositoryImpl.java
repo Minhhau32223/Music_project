@@ -3,6 +3,7 @@ package com.spotify.spotify_backend.infrastructure.persistence.adapter;
 import java.util.List;
 
 import org.springframework.stereotype.Repository;
+import org.springframework.data.domain.PageRequest;
 
 import com.spotify.spotify_backend.domain.model.RecentlyPlayed;
 import com.spotify.spotify_backend.domain.repository.RecentlyPlayedRepository;
@@ -72,6 +73,13 @@ public void deleteOldestByUserId(
             userId
     );
 }
+
+    @Override
+    public List<RecentlyPlayed> findRecentByUserId(Long userId, int limit) {
+        return repository.findByUserIdOrderByPlayedAtDescIdDesc(userId,
+                PageRequest.of(0, limit))
+                .stream().map(this::mapToDomain).toList();
+    }
 
     private RecentlyPlayed mapToDomain(
             RecentlyPlayedEntity entity

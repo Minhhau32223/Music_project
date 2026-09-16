@@ -1,37 +1,72 @@
 server:
-  port: 8000
-
+  port: ${PORT:8000}
+  shutdown: graceful
 spring:
-
+  application:
+    name: spotify-backend
+  profiles:
+    default: dev
   datasource:
-    url: jdbc:postgresql://localhost:5432/music_app
-    username: postgres
-    password: 123456
-    driver-class-name: org.postgresql.Driver
-
-
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/music_app}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD}
   jpa:
+    open-in-view: false
     hibernate:
-      ddl-auto: update
-
-    show-sql: true
-
-    properties:
-      hibernate:
-        format_sql: true
+      ddl-auto: validate
+    show-sql: false
+  flyway:
+    enabled: true
+  cache:
+    type: ${CACHE_TYPE:none}
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      connect-timeout: 2s
+      timeout: 2s
+      ssl:
+        enabled: ${REDIS_SSL:false}
+      repositories:
+        enabled: false
   servlet:
     multipart:
       max-file-size: 50MB
       max-request-size: 50MB
-
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:6000000}
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+auth:
+  refresh-cookie:
+    secure: ${AUTH_COOKIE_SECURE:false}
+    same-site: ${AUTH_COOKIE_SAME_SITE:Lax}
+cloudinary:
+  cloud_name: ${CLOUDINARY_CLOUD_NAME:}
+  api_key: ${CLOUDINARY_API_KEY:}
+  api_secret: ${CLOUDINARY_API_SECRET:}
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+  health:
+    redis:
+      enabled: false
+springdoc:
+  paths-to-match: /api/**
+  swagger-ui:
+    persist-authorization: false
 logging:
   level:
-    org.hibernate.SQL: debug
-jwt:
-  secret: 1234567890123456789012345678901234567890123456789012345678901234
-  expiration: 6000000
-
-cloudinary:
-  cloud_name: dplmtd7dv
-  api_key: 614993596941897
-  api_secret: 4bZStpHP9wu4f7JhMMnGetML3V8
+    root: INFO
+    org.hibernate.SQL: WARN

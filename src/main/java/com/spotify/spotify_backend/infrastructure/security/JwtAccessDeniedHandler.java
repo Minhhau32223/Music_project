@@ -10,7 +10,7 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import lombok.RequiredArgsConstructor;
 import com.spotify.spotify_backend.application.dto.Response.ErrorResponse;
 
 import jakarta.servlet.ServletException;
@@ -18,7 +18,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Component
+@RequiredArgsConstructor
 public class JwtAccessDeniedHandler implements AccessDeniedHandler {
+    private final ObjectMapper mapper;
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,
@@ -35,8 +37,7 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
+
         mapper.writeValue(response.getOutputStream(), errorResponse);
     }
 }

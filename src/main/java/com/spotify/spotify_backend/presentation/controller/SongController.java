@@ -9,11 +9,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.spotify.spotify_backend.application.dto.Request.CreateSongRequest;
 import com.spotify.spotify_backend.application.dto.Request.SongFilterRequest;
+import com.spotify.spotify_backend.application.dto.Request.UpdateSongRequest;
 import com.spotify.spotify_backend.application.dto.Response.PageResponse;
 import com.spotify.spotify_backend.application.dto.Response.SongResponse;
 import com.spotify.spotify_backend.application.usecase.searchusecase.FilterSongsUseCase;
@@ -21,6 +23,7 @@ import com.spotify.spotify_backend.application.usecase.songusecase.CreateSongUse
 import com.spotify.spotify_backend.application.usecase.songusecase.DeleteSongUseCase;
 import com.spotify.spotify_backend.application.usecase.songusecase.GetAllSongsUseCase;
 import com.spotify.spotify_backend.application.usecase.songusecase.GetSongUseCase;
+import com.spotify.spotify_backend.application.usecase.songusecase.UpdateSongUseCase;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -35,13 +38,21 @@ public class SongController {
     private final GetAllSongsUseCase getAllSongsUseCase;
     private final DeleteSongUseCase deleteSongUseCase;
     private final FilterSongsUseCase filterSongsUseCase;
+    private final UpdateSongUseCase updateSongUseCase;
+
+    @PutMapping(value = {"/{id}", "/{id}/"},
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<SongResponse> updateSong(@PathVariable Long id,
+            @Valid @ModelAttribute UpdateSongRequest request) {
+        return ResponseEntity.ok(updateSongUseCase.execute(id, request));
+    }
 
     /**
      * GET /api/songs/filter
      */
     @GetMapping("/filter")
     public ResponseEntity<PageResponse<SongResponse>> filterSongs(
-            SongFilterRequest request
+            @org.springdoc.core.annotations.ParameterObject @ModelAttribute SongFilterRequest request
     ) {
         return ResponseEntity.ok(
                 filterSongsUseCase.execute(request)

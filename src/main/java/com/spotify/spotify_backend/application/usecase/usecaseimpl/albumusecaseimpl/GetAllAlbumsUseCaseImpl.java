@@ -20,7 +20,7 @@ public class GetAllAlbumsUseCaseImpl implements GetAllAlbumsUseCase {
     @Override
     public List<AlbumResponse> execute() {
 
-        return albumRepository.findAll()
+        return albumRepository.findAllPublished()
                 .stream()
                 .map(AlbumMapper::toResponse)
                 .toList();

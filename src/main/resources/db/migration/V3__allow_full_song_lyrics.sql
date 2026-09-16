@@ -1,0 +1,2 @@
+ALTER TABLE songs
+    ALTER COLUMN lyrics TYPE TEXT;

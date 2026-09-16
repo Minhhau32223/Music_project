@@ -1,0 +1,12 @@
+# Run Spring Boot directly while PostgreSQL and Redis run in docker-compose.local.yml.
+spring:
+  cache:
+    type: redis
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+management:
+  health:
+    redis:
+      enabled: true

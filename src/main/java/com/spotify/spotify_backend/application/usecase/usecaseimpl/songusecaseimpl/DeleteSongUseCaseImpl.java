@@ -9,6 +9,7 @@ import com.spotify.spotify_backend.domain.repository.SongRepository;
 
 import lombok.RequiredArgsConstructor;
 @Service
+@lombok.extern.slf4j.Slf4j
 @RequiredArgsConstructor
 public class DeleteSongUseCaseImpl implements DeleteSongUseCase{
      private final SongRepository songRepository;
@@ -20,5 +21,6 @@ public class DeleteSongUseCaseImpl implements DeleteSongUseCase{
                 .orElseThrow(() -> new NotFoundException("Song not found"));
 
         songRepository.deleteById(id);
+        log.info("Deleted song id={}", id);
     }
 }

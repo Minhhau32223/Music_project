@@ -13,7 +13,6 @@ public class PlaylistMapper {
         return Playlist.builder()
                 .name(request.name())
                 .image(request.image())
-                .userId(request.userId())
                 .build();
     }
 

@@ -23,6 +23,7 @@ import com.spotify.spotify_backend.application.usecase.playlistusecase.GetPlayli
 import com.spotify.spotify_backend.application.usecase.playlistusecase.UpdatePlaylistUseCase;
 
 import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/playlists")
@@ -37,9 +38,10 @@ public class PlaylistController {
 
     @PostMapping("/create")
     public PlaylistResponse create(
-            @RequestBody CreatePlaylistRequest request
+            Authentication authentication,
+            @Valid @RequestBody CreatePlaylistRequest request
     ) {
-        return createPlaylistUseCase.execute(request);
+        return createPlaylistUseCase.execute((Long) authentication.getPrincipal(), request);
     }
 
     @PutMapping("/{id}")
@@ -66,8 +68,9 @@ public class PlaylistController {
 
     @DeleteMapping("/{id}")
     public void delete(
+            Authentication authentication,
             @PathVariable Long id
     ) {
-        deletePlaylistUseCase.execute(id);
+        deletePlaylistUseCase.execute((Long) authentication.getPrincipal(), id);
     }
 }

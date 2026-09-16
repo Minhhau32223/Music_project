@@ -1,38 +1,21 @@
 spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/music_app_test
-    username: postgres
-    password: 123456
-    driver-class-name: org.postgresql.Driver
-
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: validate
     show-sql: false
-    properties:
-      hibernate:
-        format_sql: true
-
   flyway:
-    enabled: false
-
-  servlet:
-    multipart:
-      max-file-size: 50MB
-      max-request-size: 50MB
-
+    enabled: true
+  cache:
+    type: none
 server:
   port: 0
-
 logging:
   level:
     root: WARN
     com.spotify: INFO
-
 jwt:
-  secret: test-secret-key-at-least-64-chars-long-for-hs512-algorithm-1234567890
+  secret: test-only-secret-key-at-least-64-chars-long-for-hs512-12345678901234
   expiration: 86400000
-
 cloudinary:
   cloud_name: test
   api_key: test

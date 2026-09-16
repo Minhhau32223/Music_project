@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 import javax.crypto.SecretKey;
+import jakarta.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -24,6 +25,17 @@ public class JwtProviderImpl implements JwtProvider {
     @Value("${jwt.expiration}")
     private long expirationTime;
 
+    @Value("${jwt.refresh-expiration:604800000}")
+    private long refreshExpirationTime;
+
+    @PostConstruct
+    void validateConfiguration() {
+        getKey();
+        if (expirationTime <= 0 || refreshExpirationTime <= 0) {
+            throw new IllegalStateException("JWT expiration values must be positive");
+        }
+    }
+
     private SecretKey getKey() {
 
         return Keys.hmacShaKeyFor(
@@ -40,6 +52,7 @@ public class JwtProviderImpl implements JwtProvider {
         return Jwts.builder()
                 .setSubject(String.valueOf(userId))
                 .claim("role", role.name())
+                .claim("tokenType", "access")
                 .setIssuedAt(new Date())
                 .setExpiration(
                         new Date(
@@ -52,21 +65,38 @@ public class JwtProviderImpl implements JwtProvider {
     }
 
     @Override
+    public String generateRefreshToken(Long userId) {
+        return Jwts.builder()
+                .setSubject(String.valueOf(userId))
+                .claim("tokenType", "refresh")
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + refreshExpirationTime))
+                .signWith(getKey())
+                .compact();
+    }
+
+    @Override
     public boolean validateToken(
             String token
     ) {
 
         try {
 
-            Jwts.parser()
-                    .verifyWith(getKey())
-                    .build()
-                    .parseSignedClaims(token);
-
-            return true;
+            Claims claims = extractClaims(token);
+            return "access".equals(claims.get("tokenType", String.class));
 
         } catch (Exception e) {
 
+            return false;
+        }
+    }
+
+    @Override
+    public boolean validateRefreshToken(String token) {
+        try {
+            Claims claims = extractClaims(token);
+            return "refresh".equals(claims.get("tokenType", String.class));
+        } catch (Exception e) {
             return false;
         }
     }
@@ -90,9 +120,11 @@ public class JwtProviderImpl implements JwtProvider {
 
         Claims claims = extractClaims(token);
 
-        return Role.valueOf(
-                claims.get("role", String.class)
-        );
+        String role = claims.get("role", String.class);
+        if (role == null) {
+            throw new IllegalArgumentException("Missing role claim");
+        }
+        return Role.valueOf(role);
     }
 
     private Claims extractClaims(

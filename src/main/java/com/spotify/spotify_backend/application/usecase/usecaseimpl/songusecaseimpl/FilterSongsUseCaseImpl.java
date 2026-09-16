@@ -6,6 +6,7 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 
 import com.spotify.spotify_backend.application.dto.Request.SongFilterRequest;
+import com.spotify.spotify_backend.application.dto.Request.SongQuery;
 import com.spotify.spotify_backend.application.dto.Response.PageResponse;
 import com.spotify.spotify_backend.application.dto.Response.SongResponse;
 import com.spotify.spotify_backend.application.mapper.SongMapper;
@@ -33,14 +34,22 @@ public class FilterSongsUseCaseImpl implements FilterSongsUseCase {
     @Override
     public PageResponse<SongResponse> execute(SongFilterRequest request) {
 
-        // Validate sortBy
-        if (request.sortBy() != null && !request.sortBy().isBlank()) {
-            if (!ALLOWED_SORT_FIELDS.contains(request.sortBy())) {
-                throw new BadRequestException("Invalid sort field. Allowed fields: " + ALLOWED_SORT_FIELDS);
-            }
+        int page = request.page() == null ? 0 : request.page();
+        int size = request.size() == null ? 10 : request.size();
+        String sortBy = request.sortBy() == null ? "id" : request.sortBy();
+        String direction = request.sortDirection() == null ? "ASC" : request.sortDirection();
+        if (page < 0 || size < 1 || size > 100 || (long) page * size > Integer.MAX_VALUE) {
+            throw new BadRequestException("page must be non-negative, size between 1 and 100, and offset within integer range");
         }
-
-        PageResponse<Song> domainPage = songRepository.findSongsByFilters(request);
+        if (!ALLOWED_SORT_FIELDS.contains(sortBy)) {
+            throw new BadRequestException("Invalid sort field. Allowed fields: " + ALLOWED_SORT_FIELDS);
+        }
+        if (!Set.of("ASC", "DESC").contains(direction)) {
+            throw new BadRequestException("sortDirection must be ASC or DESC");
+        }
+        var query = new SongQuery(
+                request.artistId(), request.albumId(), sortBy, direction.equals("DESC"), page, size);
+        var domainPage = songRepository.findSongsByFilters(query);
 
         List<SongResponse> content = domainPage.content().stream()
                 .map(song -> {
@@ -48,8 +57,8 @@ public class FilterSongsUseCaseImpl implements FilterSongsUseCase {
                     Album album = albumRepository.findById(song.getAlbumId()).orElse(null);
                     return SongMapper.toResponse(
                             song,
-                            artist != null ? artist.getName() : "",
-                            album != null ? album.getName() : ""
+                            album != null ? album.getName() : "",
+                            artist != null ? artist.getName() : ""
                     );
                 })
                 .toList();

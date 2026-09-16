@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.spotify.spotify_backend.domain.model.Album;
 import com.spotify.spotify_backend.domain.repository.AlbumRepository;
@@ -15,16 +17,19 @@ import lombok.RequiredArgsConstructor;
 @Repository
 @RequiredArgsConstructor
 public class AlbumRepositoryImpl implements AlbumRepository {
+    private static final String PUBLISHED = "PUBLISHED";
     private final AlbumJpaRepository albumJpaRepository;
     @Override
+    @Transactional
+    @CacheEvict(cacheNames = {"topSongs", "newReleases"}, allEntries = true)
     public Album save(Album album){
-        AlbumEntity entity=AlbumEntity.builder()
-                                      .id(album.getId())
-                                      .name(album.getName())
-                                      .image(album.getImage())
-                                      .description(album.getDescription())
-                                      .bgColor(album.getBgColor())
-                                      .build();
+        AlbumEntity entity = album.getId() == null
+                ? AlbumEntity.builder().status(PUBLISHED).build()
+                : albumJpaRepository.findById(album.getId()).orElseThrow();
+        entity.setName(album.getName());
+        entity.setImage(album.getImage());
+        entity.setDescription(album.getDescription());
+        entity.setBgColor(album.getBgColor());
         AlbumEntity saveEntity= albumJpaRepository.save(entity);
         return mapToDomain(saveEntity);
 
@@ -46,6 +51,8 @@ public class AlbumRepositoryImpl implements AlbumRepository {
     }
 
     @Override
+    @Transactional
+    @CacheEvict(cacheNames = {"topSongs", "newReleases"}, allEntries = true)
     public void deleteById(Long id) {
         albumJpaRepository.deleteById(id);
     }
@@ -59,6 +66,22 @@ public class AlbumRepositoryImpl implements AlbumRepository {
                 .stream()
                 .map(this::mapToDomain)
                 .toList();
+    }
+
+    @Override
+    public Optional<Album> findPublishedById(Long id) {
+        return albumJpaRepository.findByIdAndStatus(id, PUBLISHED).map(this::mapToDomain);
+    }
+
+    @Override
+    public List<Album> findAllPublished() {
+        return albumJpaRepository.findByStatus(PUBLISHED).stream().map(this::mapToDomain).toList();
+    }
+
+    @Override
+    public List<Album> findPublishedByNameContaining(String keyword) {
+        return albumJpaRepository.findByNameContainingIgnoreCaseAndStatus(keyword, PUBLISHED)
+                .stream().map(this::mapToDomain).toList();
     }
     private Album mapToDomain(AlbumEntity entity) {
 
