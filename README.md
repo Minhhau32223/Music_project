@@ -1,123 +1,171 @@
-# Spotify Clone Backend
+# Music App Backend
 
-Java 21, Spring Boot 3.5, PostgreSQL, JWT USER/ADMIN và Cloudinary.
-Kiến trúc giữ nguyên các lớp presentation → application → domain, với adapter trong infrastructure.
+A music streaming REST API built with **Java 21 and Spring Boot 3.5**, covering music discovery, personal libraries, artist publishing, and administrative content moderation. PostgreSQL stores application data, Cloudinary hosts audio and images, and Redis caches frequently requested catalog results.
 
-## Chạy bằng Docker Compose
+This repository contains the backend. A separate frontend consumes its APIs; the complete integration contract is documented in [Frontend API Guide](docs/FRONTEND_API_GUIDE.md).
 
-1. Cài Docker Engine/Docker Desktop và Docker Compose.
-2. Sao chép `.env.example` thành `.env`.
-3. Điền `DB_PASSWORD`, một `JWT_SECRET` ngẫu nhiên dài ít nhất 64 ký tự và thông tin Cloudinary nếu cần upload.
-4. Chạy:
+## Features
 
-```sh
-docker compose up --build --wait --wait-timeout 180
+| Area | Functionality |
+| --- | --- |
+| Music catalog | Browse songs, albums, and artists; retrieve lyrics and cover images; filter songs by artist or album with pagination and sorting |
+| Audio playback | Retrieve stream metadata or redirect the browser audio player to Cloudinary-hosted media |
+| Personal library | Create and edit playlists, add or remove tracks, like songs, follow artists, and view listening history |
+| Discovery | Search across songs, albums, and artists; retrieve top songs, new releases, and personalized recommendations |
+| Accounts | Register, log in, refresh sessions, update profiles and avatars, change passwords, and deactivate accounts |
+| Artist Studio | Apply for an artist account; manage owned albums and songs; upload audio and artwork; submit content for review |
+| Administration | Review artist applications, approve or reject submitted content, disable published content, and manage catalog entries |
+
+Personalized recommendations use recent listening history to identify preferred artists and albums, exclude recently played tracks, and fill remaining slots with popular songs. Users without history receive popular tracks. This is a history-based ranking strategy, not a machine learning model.
+
+## Technology and implementation
+
+| Technology | Purpose |
+| --- | --- |
+| Java 21, Spring Boot 3.5.14 | REST controllers, application services, configuration, and dependency injection |
+| Spring Security, JJWT | Bearer access tokens, HttpOnly refresh cookies, and role-based authorization for USER, ARTIST, and ADMIN |
+| PostgreSQL, Spring Data JPA / Hibernate | Relational persistence for users, catalog entries, playlists, follows, and playback history |
+| Flyway | Versioned schema migrations; Hibernate validates the database schema at startup |
+| Spring Cache, Redis | Cached catalog reads with expiration and cache invalidation after relevant mutations |
+| Cloudinary | Multipart upload and hosting of audio, artwork, and avatars |
+| Jakarta Validation | Request validation, combined with application-level ownership and lifecycle checks |
+| Springdoc OpenAPI, Swagger UI | API discovery and interactive documentation |
+| JUnit 5, Spring Boot Test, Spring Security Test | Automated API, authorization, persistence, and business workflow tests |
+| Embedded PostgreSQL, JaCoCo | Disposable PostgreSQL for tests and generated coverage reports |
+| Docker Compose, GitHub Actions | Local service orchestration, automated verification, image builds, and optional GHCR publishing |
+
+### Architecture
+
+The code is organized around Clean Architecture principles with presentation, application, domain, and infrastructure packages. Repository interfaces separate core use cases from persistence and media providers. Some creator workflows currently access JPA repositories directly, so dependency isolation is not yet uniform across every feature.
+
+```text
+src/main/java/com/spotify/spotify_backend/
+├── presentation/     # REST controllers, request middleware, exception handling
+├── application/      # Use cases, services, request/response DTOs, mappers
+├── domain/           # Domain models, repository contracts, business exceptions
+└── infrastructure/   # JPA adapters, JWT, Cloudinary, Redis, configuration
+
+src/main/resources/db/migration/  # Flyway migrations
+src/test/                        # Automated tests
 ```
 
-Backend mặc định: [localhost:8000](http://localhost:8000).
-[Health](http://localhost:8000/actuator/health),
-[Swagger UI](http://localhost:8000/swagger-ui/index.html),
-[OpenAPI JSON](http://localhost:8000/v3/api-docs).
+### Authorization and publishing
 
-Compose bật Redis, chờ PostgreSQL/Redis healthy rồi khởi động backend bằng user không phải root.
-PostgreSQL và Redis chỉ có cổng trong mạng Compose. Database dùng volume để giữ dữ liệu.
+Playlist mutations require ownership. Artist Studio resolves the artist from the authenticated user and restricts mutations to that artist's content. Administrative routes require ADMIN; Artist Studio routes require ARTIST.
 
-## Chạy bằng Maven
+Content follows this lifecycle:
 
-Cần Java 21, PostgreSQL và các biến môi trường trong `.env.example`.
-Maven/Spring Boot không tự đọc file `.env`; hãy cấu hình biến môi trường trong terminal hoặc IDE.
-Profile mặc định là `dev`; cache mặc định tắt khi chạy Maven. Đặt `CACHE_TYPE=redis` nếu có Redis.
+```text
+DRAFT → PENDING_REVIEW → PUBLISHED → DISABLED
+                      ↘ REJECTED → edit → DRAFT
+```
+
+Only draft or rejected content can be edited, deleted, or submitted by its artist. Album approval and song approval are separate operations. Artist account applications use a separate PENDING / APPROVED / REJECTED workflow.
+
+## Run with Docker
+
+Requirements: Docker Desktop or Docker Engine with Compose.
+
+1. Copy `.env.example` to `.env`.
+2. Set `DB_PASSWORD` and a random `JWT_SECRET` of at least 64 characters.
+3. Set `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` to enable media uploads.
+4. Start the backend and its PostgreSQL/Redis dependencies:
+
+```sh
+docker compose up backend --build --wait --wait-timeout 180
+```
+
+Selecting `backend` allows this repository to run independently. Starting every Compose service also builds a frontend from `../spotify_clone_front`, which must exist separately.
+
+| Service | Local address |
+| --- | --- |
+| Backend | `http://localhost:8000` by default; configurable through `PORT` |
+| Health | `http://localhost:8000/actuator/health` |
+| Swagger UI (development) | `http://localhost:8000/swagger-ui/index.html` |
+| OpenAPI JSON (development) | `http://localhost:8000/v3/api-docs` |
+| PostgreSQL / pgAdmin connection | Host `localhost`, port `POSTGRES_PORT`, database `music_app`, user `postgres`, password `DB_PASSWORD` |
+
+The main Compose file defaults PostgreSQL's host port to `5433`; the supplied `.env.example` sets `POSTGRES_PORT=5432`. Use the actual value in `.env` when configuring pgAdmin. PostgreSQL binds to loopback; Redis is reachable within the Compose network. Named volumes preserve database and cache data between container restarts.
+
+## Run with Maven
+
+Requirements: Java 21 and PostgreSQL. The Maven wrapper is included. Redis is optional for local Maven runs unless Redis caching is enabled.
+
+To run only the supporting services locally:
+
+```sh
+docker compose -f docker-compose.local.yml up -d --wait
+```
+
+This local Compose file uses separate volumes from the main stack. It is an alternative local setup, not a connection to an already running main-stack database.
+
+Set environment variables in the terminal or IDE before running Spring Boot. Maven does **not** automatically load `.env`.
+
+| Variable | Purpose |
+| --- | --- |
+| `DB_URL` | JDBC URL for the database, for example `jdbc:postgresql://localhost:5432/music_app` |
+| `DB_USERNAME`, `DB_PASSWORD` | Database credentials |
+| `JWT_SECRET` | JWT signing secret |
+| `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Media provider credentials |
+| `PORT` | HTTP port; defaults to 8000 |
+| `CORS_ALLOWED_ORIGINS` | Comma-separated frontend origins |
+| `CACHE_TYPE` | Defaults to `none`; set to `redis` for local Redis caching |
+| `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_SSL` | Redis connection settings |
+
+Windows:
 
 ```powershell
 .\mvnw.cmd spring-boot:run
 ```
 
-Linux/macOS: `bash ./mvnw spring-boot:run`.
+Linux/macOS:
 
-## Kiểm thử
+```sh
+bash ./mvnw spring-boot:run
+```
+
+The default profile is `dev`. The `prod` profile requires external service configuration and enables Redis caching. OpenAPI documentation is disabled by default in production and can be enabled with `API_DOCS_ENABLED=true`. Configure refresh-cookie security and allowed origins for the deployment environment.
+
+Flyway applies schema migrations on startup. Development seeding is optional, requires explicit configuration, and creates no songs or media; see [Development seed](docs/development_seed.md).
+
+## Frontend integration
+
+See [Frontend API Guide](docs/FRONTEND_API_GUIDE.md) for all 76 controller operations, request fields, TypeScript response types, access rules, and screen-by-screen integration guidance.
+
+| API group | Examples |
+| --- | --- |
+| Authentication | `POST /api/auth/login/`, `POST /api/auth/refresh/` |
+| Catalog | `GET /api/songs/filter`, `GET /api/albums/{id}/songs/` |
+| Search and discovery | `GET /api/search?keyword=...`, `GET /api/recommendations/personalized` |
+| Playback | `GET /api/stream/song/{id}/play`, `POST /api/recently-played/play` |
+| Library | `/api/playlists`, `/api/favorites`, `/api/artist-follows` |
+| Artist workflows | `/api/artist-applications`, `/api/artist/albums`, `/api/artist/songs` |
+| Moderation | `/api/admin/artist-applications`, `/api/admin/songs/pending`, `/api/admin/albums/pending` |
+
+Responses are returned directly as objects, arrays, or paginated results. Authenticated requests use `Authorization: Bearer <accessToken>`. Authentication calls use credentials to carry the HttpOnly refresh cookie. Follow the documented trailing slashes exactly.
+
+The browser plays media from Cloudinary; the backend does not proxy audio bytes. Playback history is recorded through a separate authenticated POST. Playback queue, shuffle, repeat, and volume are frontend state. Lyrics are plain text, and duration is currently supplied as metadata rather than automatically extracted during upload.
+
+## Testing
 
 ```powershell
 .\mvnw.cmd -B -ntp clean verify
 ```
 
-Lần đầu Maven cần tải dependency và binary PostgreSQL phục vụ test.
-Test tự khởi động PostgreSQL tạm và áp dụng Flyway, không cần database production hoặc Docker.
-Có thể dùng database test riêng qua `TEST_DB_URL`, `TEST_DB_USERNAME`, `TEST_DB_PASSWORD`.
-Chỉ trỏ những biến này vào database test chuyên dụng: test sẽ chạy migration và ghi dữ liệu.
+On Linux/macOS, use `bash ./mvnw -B -ntp clean verify`.
 
-Đặt `TEST_REDIS_HOST` (và tùy chọn `TEST_REDIS_PORT`) để chạy thêm test Redis thật.
-Database Redis này phải dành riêng cho test vì test xóa các cache của ứng dụng.
-Nếu không có biến này, chỉ test tích hợp Redis bị bỏ qua; test TTL/serialization vẫn chạy.
+Tests use a disposable PostgreSQL instance and the application's Flyway migrations. Alternatively, configure `TEST_DB_URL`, `TEST_DB_USERNAME`, and `TEST_DB_PASSWORD` for a dedicated test database. Tests write and clean up data, so this must not point to the application database.
 
-Báo cáo: `target/surefire-reports`, coverage: `target/site/jacoco/index.html`.
-CI chạy toàn bộ suite trên PostgreSQL và Redis service, sau đó build Docker và smoke test Compose.
+Set `TEST_REDIS_HOST` and optionally `TEST_REDIS_PORT` to enable the real Redis integration test against a dedicated test instance. Without this configuration, that test is skipped.
 
-**Trạng thái xác minh hiện tại:** `$env:TEST_REDIS_HOST = '127.0.0.1'; .\mvnw.cmd -B -ntp clean verify` đã thành công với 122 test, 0 failure, 0 error và 0 test bị bỏ qua.
-Docker image đã build thành công; backend, PostgreSQL và Redis trong Compose đều healthy. Smoke test đã xác nhận health, OpenAPI, Swagger và recommendation API hoạt động; Redis tạo cache top songs/new releases với TTL tương ứng 5/10 phút.
+Latest local verification on **16 September 2026**: `mvnw verify` completed successfully with **130 tests discovered, 129 passed, 1 Redis integration test skipped, and no failures or errors**. This is a local verification result, not a claim about the latest remote CI run.
 
-## Phase 3: Filter và Recommendation
+- Test reports: `target/surefire-reports/`
+- Coverage report: `target/site/jacoco/index.html`
 
-- `GET /api/songs/filter`: `artistId`, `albumId`, `sortBy`, `sortDirection`, `page`, `size`.
-- Mặc định: `page=0&size=10&sortBy=id&sortDirection=ASC`.
-- `page >= 0`, `1 <= size <= 100`; offset vượt giới hạn integer bị từ chối.
-- Sort chỉ nhận `id`, `name`, `playCount`, `createdAt`; hướng sort chỉ nhận `ASC` hoặc `DESC`.
-- `GET /api/recommendations/top-songs?limit=5`: theo lượt nghe giảm dần.
-- `GET /api/recommendations/new-releases?limit=5`: theo thời gian tạo giảm dần.
-- `GET /api/recommendations/personalized?limit=5`: yêu cầu JWT, chỉ dùng user trong token.
-- `limit` mặc định 10, giới hạn 1–100.
-- Cá nhân hóa dựa trên 100 lượt nghe gần nhất, top 3 nghệ sĩ/album, loại bài đã nghe trong cửa sổ này.
-  Thiếu candidate sẽ bổ sung bài phổ biến chưa nghe; user chưa có lịch sử nhận top songs.
-- API danh sách cũ `GET /api/songs/` vẫn giữ response dạng mảng để tương thích; frontend nên dùng endpoint filter có phân trang.
+## CI and container publishing
 
-## Phase 4: Các thay đổi API cần cập nhật ở frontend
+- [Backend CI](.github/workflows/ci.yml): runs Maven verification with PostgreSQL and Redis, uploads test/coverage reports, builds the Docker image, and smoke-tests the backend Compose services.
+- [Publish workflow](.github/workflows/publish.yml): manually triggered verification and image publishing to GitHub Container Registry.
 
-- Favorite: `POST/DELETE /api/favorites/{songId}`, `GET /api/favorites/me`.
-- Follow: `POST/DELETE /api/artist-follows/{artistId}`, `GET /api/artist-follows/me`.
-  Đường dẫn follow có dấu / cuối vẫn được hỗ trợ.
-- Tạo playlist: `POST /api/playlists/create` với JSON `{"name":"My playlist","image":null}`.
-  Không gửi `userId`; backend lấy từ JWT.
-- Chỉ chủ playlist được sửa, xóa, thêm/xóa bài hát.
-- `PUT /api/songs/{id}` (hoặc có / cuối) nhận multipart và yêu cầu ADMIN.
-- JWT sai/hết hạn trả 401 JSON kể cả khi gửi kèm vào endpoint public.
-- 401, 403, validation và lỗi HTTP dùng `timestamp/status/error/message/path`; validation bổ sung `errors`.
-- CORS lấy từ `CORS_ALLOWED_ORIGINS`, phân tách nhiều origin bằng dấu phẩy.
-
-## Phase 5: Cấu hình và database
-
-- Dev/test/prod tách profile. Production luôn dùng Redis; JPA dùng `validate`, schema do Flyway quản lý.
-- Cache `topSongs`: 5 phút; `newReleases`: 10 phút; key bao gồm limit.
-- Song/Album/Artist save/delete xóa hai cache sau transaction thành công.
-  Playback cập nhật lượt nghe thông qua SongRepository nên cũng xóa cache.
-- Serializer JSON có kiểu cụ thể; không cache dữ liệu cá nhân.
-- Chỉ Actuator health được expose, không hiển thị chi tiết hạ tầng.
-- Swagger/OpenAPI bật ở dev/test; prod mặc định tắt, có thể bật bằng `API_DOCS_ENABLED=true`.
-- Với production Redis dùng TLS: `REDIS_SSL=true`; password lấy từ `REDIS_PASSWORD`.
-- Các secret cũ đã được bỏ khỏi source. Nếu đã dùng key từng commit, cần thay key ở nhà cung cấp và cập nhật environment.
-
-### Database mới
-
-Flyway tự chạy `V1__initial_schema.sql` rồi `V2__song_creation_time_and_query_indexes.sql`.
-Test cũng chạy chính các migration này và Hibernate xác minh mapping.
-
-### Database đã có từ các phase trước
-
-Không bật baseline tự động trong cấu hình dùng chung.
-Sao lưu và kiểm tra schema hiện tại khớp V1 trước khi đánh dấu baseline ở **version 1** bằng Flyway.
-Có thể bật tạm `SPRING_FLYWAY_BASELINE_ON_MIGRATE=true` và `SPRING_FLYWAY_BASELINE_VERSION=1`
-cho lần khởi động đầu tiên sau khi đã kiểm tra schema, sau đó bỏ hai biến.
-V2 giữ `created_at` đã tồn tại và chỉ điền thời điểm migration cho dữ liệu chưa có thời gian tạo;
-không thể khôi phục ngày tạo thực tế của dữ liệu cũ nếu không có nguồn lịch sử.
-
-## CI và chuẩn bị phát hành
-
-- `.github/workflows/ci.yml`: push/PR → Java 21 → clean verify → JaCoCo → Docker build → Compose smoke test.
-- `.github/workflows/publish.yml`: chạy thủ công, kiểm thử lại rồi push image lên GHCR bằng `GITHUB_TOKEN`.
-  Repository cần cho phép workflow ghi Packages.
-- Chưa push source/image hoặc triển khai dịch vụ từ phiên làm việc này.
-- Chưa chọn nền tảng backend, chưa cấu hình tài khoản hosting/domain và chưa có frontend trong repository này.
-- Khi triển khai: chọn image đã kiểm thử, đặt profile `prod`, cấu hình PostgreSQL/Redis/Cloudinary và CORS cho domain frontend.
-  Frontend Vercel đặt `VITE_API_BASE_URL=https://<backend-domain>`.
-- Chỉ đánh dấu hoàn tất Phase 5 sau khi CI, Compose và smoke test production thực sự thành công.
-
-Tham khảo cấu hình: [Spring Data Redis Cache](https://docs.spring.io/spring-data/redis/reference/redis/redis-cache.html),
-[Springdoc v2](https://springdoc.org/v2/), [PostgreSQL tạm cho test](https://github.com/zonkyio/embedded-postgres).
+Credentials belong in environment variables or local `.env` files. Local media, database exports, build output, and secrets are excluded from Git. Upload actual music and artwork through the application APIs; they are not distributed with this repository.
