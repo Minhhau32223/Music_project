@@ -11,7 +11,7 @@
 	<groupId>com.spotify</groupId>
 	<artifactId>music_app</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>spotify_backend</name>
+	<name>music-app-backend</name>
 	<description/>
 	<url/>
 	<licenses>

@@ -1,4 +1,4 @@
-# Spotify Clone Backend
+# Music App Backend
 
 Backend REST API cho ứng dụng nghe nhạc, xây dựng bằng Spring Boot và Clean Architecture. Hệ thống cung cấp xác thực JWT, quản lý bài hát/album/nghệ sĩ, playlist, yêu thích, follow, lịch sử nghe, tìm kiếm, đề xuất và streaming MP3 qua Cloudinary.
 
