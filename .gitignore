@@ -37,6 +37,11 @@ build/
 !.env.example
 *.log
 
+# Keep the repository entry point concise; local planning/reference docs stay out of Git.
+*.md
+!README.md
+docs/
+
 # Local secrets and credentials
 *.pem
 *.key
