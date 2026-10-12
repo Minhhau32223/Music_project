@@ -94,20 +94,30 @@ Template request/response đầy đủ, quyền truy cập, multipart fields, m�
 
 Khi upload hoặc thay file MP3, chỉ gửi `name`, `file`, `image`, `lyrics`, `albumId` nếu có. Không gửi `duration`: backend lấy thời lượng thật từ metadata audio và trả lại trong response.
 
-## Biến môi trường
+## Cấu hình môi trường
 
-| Biến | Mục đích |
-|---|---|
-| `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` | Kết nối PostgreSQL |
-| `POSTGRES_PORT` | Port PostgreSQL host |
-| `JWT_SECRET`, `JWT_EXPIRATION`, `JWT_REFRESH_EXPIRATION` | JWT |
-| `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Media storage |
-| `CORS_ALLOWED_ORIGINS` | Origin frontend được phép |
-| `CACHE_TYPE`, `REDIS_HOST`, `REDIS_PORT` | Cache |
-| `PORT` | Port HTTP backend |
-| `APP_SEED_ENABLED` | Bật/tắt seed dữ liệu local |
+Repository chỉ công khai **tên biến** và giá trị mẫu rỗng. Không đưa giá trị thật của các biến dưới đây vào README, `.env.example`, log, issue hoặc Git:
 
-Danh sách đầy đủ và giá trị mẫu nằm trong [`.env.example`](.env.example).
+| Nhóm | Biến | Mức độ nhạy cảm | Mục đích |
+|---|---|---|---|
+| Database | `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` | `DB_PASSWORD` là secret | Kết nối PostgreSQL |
+| JWT | `JWT_SECRET`, `JWT_EXPIRATION`, `JWT_REFRESH_EXPIRATION` | `JWT_SECRET` là secret nghiêm trọng | Ký và hết hạn token |
+| Cloudinary | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | `CLOUDINARY_API_SECRET` là secret | Lưu trữ media |
+| CORS | `CORS_ALLOWED_ORIGINS` | Cấu hình bảo mật | Whitelist frontend |
+| Cache | `CACHE_TYPE`, `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_SSL` | `REDIS_PASSWORD` là secret nếu bật | Cấu hình Redis |
+| Runtime | `POSTGRES_PORT`, `PORT`, `API_DOCS_ENABLED` | Không phải secret | Port và tính năng runtime |
+| Seed local | `APP_SEED_ENABLED`, `DEV_SEED_PASSWORD` | `DEV_SEED_PASSWORD` là secret local | Dữ liệu phát triển |
+
+### Quy tắc bảo mật cấu hình
+
+- `.env` chỉ tồn tại local hoặc trong secret manager của môi trường triển khai; file này đã được ignore.
+- `.env.example` chỉ giữ tên biến và placeholder, không dùng password, token, API key hoặc secret thật.
+- Tạo `JWT_SECRET` ngẫu nhiên đủ dài cho từng môi trường; không dùng lại secret development ở production.
+- Giới hạn `CORS_ALLOWED_ORIGINS` vào đúng domain frontend cần thiết, không dùng `*` khi có xác thực.
+- Rotate ngay database password, JWT secret, Redis password hoặc Cloudinary secret nếu từng bị commit, log hoặc chia sẻ ngoài hệ thống.
+- Tắt `APP_SEED_ENABLED` và `API_DOCS_ENABLED` trong production nếu không có yêu cầu vận hành rõ ràng.
+
+Dùng [`.env.example`](.env.example) làm danh sách biến cần cấu hình, sau đó tạo `.env` local hoặc khai báo chúng trong secret manager của Docker/CI/CD. Không copy giá trị bí mật vào tài liệu công khai.
 
 ## Repository hygiene
 
