@@ -31,7 +31,15 @@ services:
       REDIS_PORT: 6379
       REDIS_PASSWORD: ""
       MANAGEMENT_HEALTH_REDIS_ENABLED: "true"
+      APP_SEED_ENABLED: ${APP_SEED_ENABLED:-false}
+      DEV_SEED_PASSWORD: ${DEV_SEED_PASSWORD:-change-me-local}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-change-me-local}
+      MEDIA_SEED_ENABLED: ${MEDIA_SEED_ENABLED:-false}
+      MEDIA_SEED_DIR: ${MEDIA_SEED_DIR:-/seed-media/music}
+      MEDIA_SEED_IMAGE_DIR: ${MEDIA_SEED_IMAGE_DIR:-/seed-media/background}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173}
+    volumes:
+      - ./seed-media:/seed-media:ro
     depends_on:
       postgres_db:
         condition: service_healthy

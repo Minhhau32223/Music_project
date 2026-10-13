@@ -119,6 +119,12 @@ Repository chỉ công khai **tên biến** và giá trị mẫu rỗng. Không 
 
 Dùng [`.env.example`](.env.example) làm danh sách biến cần cấu hình, sau đó tạo `.env` local hoặc khai báo chúng trong secret manager của Docker/CI/CD. Không copy giá trị bí mật vào tài liệu công khai.
 
+## Seed dữ liệu demo
+
+Seed tài khoản và catalog demo được bật có chủ đích bằng `APP_SEED_ENABLED=true`. Mật khẩu admin lấy từ `SEED_ADMIN_PASSWORD`, được hash bằng BCrypt trước khi lưu; giá trị mật khẩu không nằm trong source code hay migration. Các file MP3/ảnh được mount ngoài container qua `MEDIA_SEED_DIR` và `MEDIA_SEED_IMAGE_DIR`, sau đó upload lên Cloudinary khi `MEDIA_SEED_ENABLED=true`.
+
+Flyway chỉ quản lý schema và migration cấu trúc. Việc đưa binary media lên storage ngoài và hash mật khẩu bằng secret runtime không được đặt trong SQL migration, vì migration không nên chứa file media hoặc credential cố định. Khi deploy, mount thư mục media đã được cấp quyền sử dụng, khai báo secret trong secret manager, bật hai cờ seed, rồi khởi động backend; runner sẽ import idempotent theo tên bài hát.
+
 ## Repository hygiene
 
 - `.env`, credential, media local, database dump, build output, test report và log không được commit.

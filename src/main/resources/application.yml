@@ -49,6 +49,16 @@ cloudinary:
 app:
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
+  seed:
+    media:
+      enabled: ${MEDIA_SEED_ENABLED:false}
+      directory: ${MEDIA_SEED_DIR:}
+      image-directory: ${MEDIA_SEED_IMAGE_DIR:}
+  seed:
+    media:
+      enabled: ${MEDIA_SEED_ENABLED:false}
+      directory: ${MEDIA_SEED_DIR:}
+      image-directory: ${MEDIA_SEED_IMAGE_DIR:}
 management:
   endpoints:
     web:
