@@ -1,10 +1,15 @@
 package com.spotify.spotify_backend.infrastructure.persistence.adapter;
 
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.Locale;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Map;
 import java.util.UUID;
+import com.spotify.spotify_backend.domain.model.AudioUpload;
 
 import org.springframework.stereotype.Repository;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,13 +23,26 @@ import lombok.RequiredArgsConstructor;
 
 @Repository
 @RequiredArgsConstructor
-@lombok.extern.slf4j.Slf4j
+@Slf4j
 public class CloudinaryRepositoryImpl implements CloudinaryRepository {
 
     private final Cloudinary cloudinary;
 
     @Override
     public String uploadFile(MultipartFile file, String folder) {
+        return upload(file, folder, false).get("secure_url").toString();
+    }
+    @Override
+    public AudioUpload uploadAudio(MultipartFile file, String folder) {
+        Map result = upload(file, folder, true);
+        Object value = result.get("duration");
+        if (!(value instanceof Number n) || !Double.isFinite(n.doubleValue()) || n.doubleValue() <= 0) {
+            throw new FileUploadException("Audio duration could not be determined");
+        }
+        long seconds = Math.max(1, Math.round(((Number) value).doubleValue()));
+        return new AudioUpload(result.get("secure_url").toString(), String.format(Locale.ROOT, "%02d:%02d", seconds / 60, seconds % 60));
+    }
+    private Map upload(MultipartFile file, String folder, boolean audio) {
         File tempFile = null;
         try {
             tempFile = File.createTempFile("upload-", ".upload");
@@ -34,12 +52,12 @@ public class CloudinaryRepositoryImpl implements CloudinaryRepository {
                     tempFile,
                     ObjectUtils.asMap(
                             "folder", folder,
-                            "resource_type", "auto",
+                            "resource_type", audio ? "video" : "auto",
                             "public_id", UUID.randomUUID().toString()
                     )
             );
 
-            return result.get("secure_url").toString();
+            return result;
 
         } catch (Exception e) {
             log.error("Cloudinary upload failed ({})", e.getClass().getSimpleName());
