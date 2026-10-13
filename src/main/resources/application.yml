@@ -54,11 +54,6 @@ app:
       enabled: ${MEDIA_SEED_ENABLED:false}
       directory: ${MEDIA_SEED_DIR:}
       image-directory: ${MEDIA_SEED_IMAGE_DIR:}
-  seed:
-    media:
-      enabled: ${MEDIA_SEED_ENABLED:false}
-      directory: ${MEDIA_SEED_DIR:}
-      image-directory: ${MEDIA_SEED_IMAGE_DIR:}
 management:
   endpoints:
     web:
