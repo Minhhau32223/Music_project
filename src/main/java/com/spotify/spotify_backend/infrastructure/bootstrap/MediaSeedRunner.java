@@ -14,6 +14,7 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 /** Imports an externally mounted, licensed no-copyright media folder when explicitly enabled. */
 @Component
 @ConditionalOnProperty(prefix = "app.seed.media", name = "enabled", havingValue = "true")
+@Order(100)
 @RequiredArgsConstructor
 @Slf4j
 public class MediaSeedRunner implements ApplicationRunner {

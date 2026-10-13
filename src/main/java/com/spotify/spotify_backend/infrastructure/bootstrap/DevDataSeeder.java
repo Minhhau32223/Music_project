@@ -7,6 +7,7 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Profile("dev")
 @ConditionalOnProperty(prefix = "app.seed", name = "enabled", havingValue = "true")
+@Order(0)
 @RequiredArgsConstructor
 @Slf4j
 public class DevDataSeeder implements ApplicationRunner {
