@@ -14,7 +14,7 @@ public record CreateSongRequest(
     String duration,
     @NotNull
     Long playCount,
-    @NotNull
+    
     Long albumId,
     @NotNull
     Long artistId
