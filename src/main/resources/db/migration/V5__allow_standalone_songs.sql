@@ -1,0 +1,2 @@
+ALTER TABLE songs
+    ALTER COLUMN album_id DROP NOT NULL;

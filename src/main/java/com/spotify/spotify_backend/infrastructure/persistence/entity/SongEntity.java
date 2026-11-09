@@ -39,7 +39,7 @@ public class SongEntity {
     private String duration;
     @Column(nullable = false)
     private Long playCount;
-    @Column(nullable = false)
+    @Column
     private Long albumId;
     @Column(nullable = false)
     private Long artistId;
